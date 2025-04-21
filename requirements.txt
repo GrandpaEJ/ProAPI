@@ -1,0 +1,15 @@
+# Core dependencies
+jinja2>=3.0.0
+loguru>=0.7.0
+
+# Optional dependencies
+cython>=0.29.0
+watchdog>=3.0.0
+uvicorn>=0.20.0
+
+# Development dependencies
+pytest>=7.0.0
+pytest-cov>=4.0.0
+black>=23.0.0
+isort>=5.0.0
+flake8>=6.0.0
