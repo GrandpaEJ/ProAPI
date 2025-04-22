@@ -2,6 +2,9 @@
 
 A lightweight, beginner-friendly yet powerful Python web framework - simpler than Flask, faster than FastAPI.
 
+## Details 
+[💝Read The Full Docs](docs/README.md)
+
 ## Features
 
 - **Simpler than Flask/FastAPI** with intuitive API design
@@ -416,9 +419,9 @@ app = ProAPI(
 # Run the application
 app.run()
 ```
+[💝Read The Full Docs](docs/README.md)
 
 See the [Reliability Documentation](docs/reliability.md) for more details.
 
 ## License
-
-MIT
+[MIT](LICENSE)

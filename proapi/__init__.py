@@ -38,7 +38,7 @@ import sys
 if sys.version_info < (3, 7):
     raise RuntimeError("ProAPI requires Python 3.7 or higher")
 
-__version__ = "0.3.5"
+__version__ = "0.3.10"
 
 from .core import ProAPI
 from .routing import Route

@@ -9,14 +9,14 @@ except ImportError:
     USE_CYTHON = False
 
 # Get version
-with open("proapi/__init__.py", "r") as f:
+with open("proapi/__init__.py", "r", encoding="utf-8") as f:
     for line in f:
         if line.startswith("__version__"):
             version = line.split("=")[1].strip().strip('"\'')
             break
 
 # Get long description
-with open("README.md", "r") as f:
+with open("README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
 
 # Define extensions
