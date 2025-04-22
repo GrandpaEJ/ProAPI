@@ -37,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Type conversion in route parameters
 - WebSocket disconnection handling
 
-## [0.3.0] - 2023-11-16
+## [0.3.0] - 2025-04-16
 
 ### Added
 - Global request object for easier access to the current request
@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated session middleware to work with the global session object
 - Improved request handling to support the global request object
 
-## [0.2.0] - 2023-11-15
+## [0.2.0] - 2025-04-15
 
 ### Added
 - Session management functionality
@@ -68,7 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation to include session management
 - Improved cookie handling in the Response class to support multiple cookies
 
-## [0.1.2] - 2023-11-01
+## [0.1.2] - 2025-04-15
 
 ### Added
 - WebSocket support with room management
@@ -79,7 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-reloader issues with certain file structures
 - Cookie handling in Response class
 
-## [0.1.1] - 2023-10-15
+## [0.1.1] - 2025-04-14
 
 ### Added
 - CLI commands for running applications
@@ -90,7 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Template rendering issues
 - Static file handling
 
-## [0.1.0] - 2023-10-01
+## [0.1.0] - 2025-04-13
 
 ### Added
 - Initial release
