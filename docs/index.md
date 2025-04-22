@@ -106,6 +106,7 @@ proapi init .
 - [Getting Started](getting-started.md) - Basic usage and concepts
 - [Routing](routing.md) - URL routing and path parameters
 - [Request and Response](request-response.md) - Working with HTTP requests and responses
+- [Custom Responses](custom-responses.md) - Creating custom responses with different content types
 - [Templates](templates.md) - Template rendering with Jinja2
 - [Sessions](sessions.md) - Session management
 - [Middleware](middleware.md) - Using and creating middleware
@@ -118,6 +119,7 @@ proapi init .
 ### Performance and Reliability
 - [Fast Mode](fast_mode.md) - Optimized request handling
 - [Optimization](optimization.md) - Performance optimization techniques
+- [Performance](performance.md) - Performance benchmarks and test results
 - [Reliability](reliability.md) - Advanced reliability features
 
 ### Tools and Deployment

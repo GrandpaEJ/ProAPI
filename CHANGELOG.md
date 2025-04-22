@@ -5,6 +5,38 @@ All notable changes to ProAPI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.12] - 2025-04-22
+
+### Added
+- Comprehensive router testing with support for various response types
+- Improved documentation for custom response handling
+- Enhanced performance metrics and benchmarks
+
+### Fixed
+- Fixed JSON parsing in POST requests
+- Fixed custom response handling for HTML, text, and other content types
+- Improved error handling for different response types
+
+## [0.3.11] - 2025-04-22
+
+### Added
+- Enhanced WebSocket support with improved error handling
+- Fixed ASGI adapter for better WebSocket compatibility
+- Comprehensive performance testing and benchmarking
+- Performance documentation with RPS and response time metrics
+- Loop protection system to detect and warn about event loop blocking
+- Task offloading decorators: `@auto_task`, `@thread_task`, and `@process_task`
+
+### Changed
+- Improved error handling for WebSocket connections
+- Enhanced multi-user request handling capabilities
+- Updated documentation with performance benchmarks
+
+### Fixed
+- ASGI adapter issues with WebSocket connections
+- Type conversion in route parameters
+- WebSocket disconnection handling
+
 ## [0.3.0] - 2023-11-16
 
 ### Added
