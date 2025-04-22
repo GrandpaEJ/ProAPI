@@ -2,19 +2,22 @@
 ProAPI - A lightweight, beginner-friendly yet powerful Python web framework.
 
 Features:
+- Simpler than Flask/FastAPI with intuitive API design
+- Faster than FastAPI with optimized routing and request handling
+- Stable like Flask with robust error handling
 - Decorator-based routing (@app.get(), @app.post(), etc.)
 - Simple template rendering with Jinja2
 - Easy server startup with app.run()
 - Optional async support
-- Optional Cython-based compilation for speed
+- Optional Cython-based compilation for speed boost
 - Minimal dependencies
 - Built-in JSON support
 - Middleware system
 - Session management
-- Automatic API documentation
+- Automatic API documentation at /.docs
 - Structured logging with Loguru
 - CLI commands
-- WebSocket support
+- Enhanced WebSocket support
 
 Usage:
     from proapi import ProAPI
@@ -35,7 +38,7 @@ import sys
 if sys.version_info < (3, 7):
     raise RuntimeError("ProAPI requires Python 3.7 or higher")
 
-__version__ = "0.3.0"
+__version__ = "0.3.5"
 
 from .core import ProAPI
 from .routing import Route

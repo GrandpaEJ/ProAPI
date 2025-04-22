@@ -4,7 +4,25 @@ ProAPI includes a "fast mode" that optimizes performance for high-throughput app
 
 ## Using Fast Mode
 
-To enable fast mode, simply pass `fast=True` to the `run()` method:
+There are two ways to enable fast mode:
+
+### 1. When creating the application
+
+```python
+from proapi import ProAPI
+
+# Enable fast mode when creating the app
+app = ProAPI(fast_mode=True)
+
+@app.get("/")
+def index(request):
+    return {"message": "Hello, World!"}
+
+if __name__ == "__main__":
+    app.run()
+```
+
+### 2. When running the application
 
 ```python
 from proapi import ProAPI
@@ -16,7 +34,15 @@ def index(request):
     return {"message": "Hello, World!"}
 
 if __name__ == "__main__":
+    # Enable fast mode when running
     app.run(fast=True)
+```
+
+### 3. Using the CLI
+
+```bash
+# Run with fast mode enabled
+proapi run app.py --fast
 ```
 
 ## Performance Benefits
@@ -52,11 +78,11 @@ For development, you might want to use the standard mode with `debug=True` for b
 
 ## Limitations
 
-Fast mode has a few limitations:
+Fast mode has very few limitations:
 
-- It requires uvicorn to be installed
-- It may not work with all middleware (though most should work fine)
-- It doesn't support some advanced features like WebSockets (yet)
+- It requires uvicorn to be installed (included by default with ProAPI)
+- It may not work with some third-party middleware (though most should work fine)
+- Some debugging features may be less detailed in fast mode
 
 ## Example
 
@@ -65,7 +91,8 @@ Here's a complete example of using fast mode:
 ```python
 from proapi import ProAPI
 
-app = ProAPI(debug=True)  # Debug can still be enabled in fast mode
+# Enable both debug mode and fast mode
+app = ProAPI(debug=True, fast_mode=True)
 
 @app.get("/")
 def index(request):
@@ -80,11 +107,24 @@ def post_data(request):
     return {"received": request.json}
 
 if __name__ == "__main__":
-    # Run with fast mode enabled
+    # Run with multiple workers for even better performance
     app.run(
         host="0.0.0.0",
         port=8000,
-        fast=True,
-        workers=4  # Multiple workers for even better performance
+        workers=4
     )
 ```
+
+## Combining with Cython
+
+For maximum performance, you can combine fast mode with Cython compilation:
+
+```bash
+# Install Cython support
+pip install proapi[cython]
+
+# Run with both fast mode and Cython compilation
+proapi -c run app.py --fast
+```
+
+This combination can provide significant performance improvements, especially for CPU-bound applications.

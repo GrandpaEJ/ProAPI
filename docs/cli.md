@@ -1,13 +1,32 @@
 # Command-Line Interface (CLI) in ProAPI
 
-ProAPI includes a command-line interface (CLI) for common tasks like running applications and creating new projects. This guide explains how to use the CLI.
+ProAPI includes a powerful command-line interface (CLI) for common tasks like running applications and initializing new projects. This guide explains how to use the CLI.
 
 ## Basic Usage
 
-The CLI is available through the `proapi` module:
+The CLI is available through the `proapi` command or the `proapi` module:
 
 ```bash
+# Using the command directly
+proapi [command] [options]
+
+# Using the Python module
 python -m proapi [command] [options]
+```
+
+## Getting Help
+
+To see all available commands and options:
+
+```bash
+proapi --help
+```
+
+To get help for a specific command:
+
+```bash
+proapi run --help
+proapi init --help
 ```
 
 ## Available Commands
@@ -17,7 +36,7 @@ python -m proapi [command] [options]
 Run a ProAPI application:
 
 ```bash
-python -m proapi run app.py
+proapi run app.py
 ```
 
 #### Options
@@ -26,92 +45,124 @@ python -m proapi run app.py
   - Use `--host=local` for 127.0.0.1
   - Use `--host=all` or `--host=0.0.0.0` for all interfaces
 - `--port`: Port to bind to (default: 8000)
-- `--debug`: Enable debug mode
-- `--reload`: Enable auto-reload (requires uvicorn)
-- `--workers`: Number of worker processes (default: 1)
-- `--server`: Server type (default, multiworker)
-- `--forward`: Enable port forwarding to expose the app to the internet
-- `--forward-type`: Port forwarding service to use (ngrok, cloudflare, or localtunnel)
-- `--cf-token`: Cloudflare Tunnel token (for authenticated tunnels)
+- `--debug`: Enable debug mode for detailed error messages
+- `--reload`: Enable auto-reload when code changes
+- `--workers`: Number of worker processes (default: 1, production: 2+)
+- `--fast`: Enable fast mode with optimized request handling for better performance
+- `--forward`: Enable Cloudflare port forwarding to expose the app to the internet
+- `--cf-token`: Cloudflare Tunnel token for authenticated tunnels
 
 #### Examples
 
 Run an application in debug mode:
 
 ```bash
-python -m proapi run app.py --debug
+proapi run app.py --debug
 ```
 
 Run an application with auto-reload:
 
 ```bash
-python -m proapi run app.py --reload
+proapi run app.py --reload
 ```
 
 Run an application on a specific host and port:
 
 ```bash
-python -m proapi run app.py --host=0.0.0.0 --port=5000
+proapi run app.py --host=0.0.0.0 --port=5000
 ```
 
 Run an application with multiple workers:
 
 ```bash
-python -m proapi run app.py --workers=4
+proapi run app.py --workers=4
 ```
 
-Run an application with port forwarding:
+Run an application with fast mode for better performance:
 
 ```bash
-python -m proapi run app.py --forward
+proapi run app.py --fast
 ```
 
-### Create Command
-
-Create a new ProAPI project:
+Run an application with Cloudflare port forwarding:
 
 ```bash
-python -m proapi create myproject
+proapi run app.py --forward
+```
+
+Run a specific app instance from a module:
+
+```bash
+proapi run mymodule:app
+```
+
+### Init Command
+
+Initialize a new ProAPI project:
+
+```bash
+# Initialize in a new directory
+proapi init myproject
+
+# Initialize in the current directory
+proapi init .
 ```
 
 #### Options
 
-- `--template`: Project template (default: basic)
-  - `basic`: Simple application with a few routes
-  - `api`: API-focused application with route modules
-  - `web`: Web application with templates and static files
+- `--template`: Project template to use (default: basic)
+  - `basic`: Simple app with basic routes
+  - `api`: REST API with modular structure and example endpoints
+  - `web`: Web application with Jinja2 templates and static files
 
 #### Examples
 
-Create a basic project:
+Initialize a basic project in a new directory:
 
 ```bash
-python -m proapi create myproject
+proapi init myproject
 ```
 
-Create an API project:
+Initialize a project in the current directory:
 
 ```bash
-python -m proapi create myapi --template=api
+proapi init .
 ```
 
-Create a web project:
+Initialize an API project:
 
 ```bash
-python -m proapi create myweb --template=web
+proapi init myapi --template api
+```
+
+Initialize a web project:
+
+```bash
+proapi init myweb --template web
 ```
 
 ### Version Command
 
-Show version information:
+Show version information and check dependencies:
 
 ```bash
-python -m proapi version
+# Using the version command
+proapi version
+
+# Using the shorthand flag
+proapi -v
 ```
+
+This will display:
+- ProAPI version
+- Python version
+- Platform information
+- Status of optional dependencies (Cython, Cloudflared, Uvicorn, Jinja2, Loguru)
 
 ## Global Options
 
-- `-c`, `--compile`: Compile with Cython before running
+- `-c`, `--compile`: Compile with Cython before running (requires proapi[cython])
+- `-v`, `--version`: Show version information and exit
 
 ## Specifying the Application Instance
 
@@ -125,35 +176,49 @@ This will run the `api` instance from the `app` module.
 
 ## Project Templates
 
+ProAPI provides three project templates to help you get started quickly.
+
 ### Basic Template
+
+A simple application with basic routes. Ideal for small projects or learning ProAPI.
 
 The basic template includes:
 
-- `app.py`: Simple application with a few routes
-- `README.md`: Basic documentation
+- `app.py`: Simple application with example routes
+  - GET / - Returns a greeting message
+  - GET /hello/{name} - Returns a personalized greeting
+  - POST /echo - Echoes the JSON request body
+- `README.md`: Basic documentation with usage instructions
 
 ### API Template
 
+A REST API with modular structure and example endpoints. Ideal for building APIs.
+
 The API template includes:
 
-- `app.py`: Main application file
+- `app.py`: Main application file with fast mode enabled
 - `routes/`: Directory for route modules
-  - `users.py`: User routes
-  - `items.py`: Item routes
+  - `users.py`: User routes (GET, POST, etc.)
+  - `items.py`: Item routes (GET, POST, etc.)
 - `models/`: Directory for data models
-- `README.md`: API documentation
+- `README.md`: API documentation with endpoint descriptions
 
 ### Web Template
+
+A web application with Jinja2 templates and static files. Ideal for building websites.
 
 The web template includes:
 
 - `app.py`: Main application file
-- `routes/`: Directory for route modules
 - `templates/`: Directory for HTML templates
+  - `base.html`: Base template with common layout
+  - `index.html`: Home page template
+  - `about.html`: About page template
+  - `contact.html`: Contact form template
+  - `contact_success.html`: Contact form success page
 - `static/`: Directory for static files
-  - `css/`: CSS files
-  - `js/`: JavaScript files
-  - `img/`: Image files
+  - `css/`: CSS files with basic styling
+  - `js/`: JavaScript files with basic functionality
 - `README.md`: Web application documentation
 
 ## Compiling with Cython
@@ -161,14 +226,26 @@ The web template includes:
 You can compile your application with Cython for improved performance:
 
 ```bash
-python -m proapi run app.py --compile
+# Using the -c flag
+proapi -c run app.py
+
+# Or with the full option
+proapi --compile run app.py
 ```
 
-This requires Cython to be installed:
+This requires the Cython extra to be installed:
+
+```bash
+pip install proapi[cython]
+```
+
+Or you can install Cython directly:
 
 ```bash
 pip install cython
 ```
+
+> **Note:** Cython compilation requires a C compiler and development tools to be installed on your system. On Windows, you'll need Visual Studio with C++ development tools. On Linux, you'll need gcc and Python development headers.
 
 ## Environment Variables
 

@@ -1,9 +1,12 @@
 # ProAPI
 
-A lightweight, beginner-friendly yet powerful Python web framework.
+A lightweight, beginner-friendly yet powerful Python web framework - simpler than Flask, faster than FastAPI.
 
 ## Features
 
+- **Simpler than Flask/FastAPI** with intuitive API design
+- **Faster than FastAPI** with optimized routing and request handling
+- **Stable like Flask** with robust error handling
 - Decorator-based routing (`@app.get()`, `@app.post()`, etc.)
 - Simple template rendering with Jinja2
 - Easy server startup with `app.run()`
@@ -13,11 +16,19 @@ A lightweight, beginner-friendly yet powerful Python web framework.
 - Minimal dependencies
 - Built-in JSON support
 - Middleware/plugin system
-- Automatic API documentation
+- Automatic API documentation at `/.docs`
 - Structured logging with Loguru
 - Smart auto-reloader for development
-- Port forwarding to expose apps to the internet
+- Port forwarding with Cloudflare to expose apps to the internet
 - CLI commands
+
+### Advanced Reliability Features
+- **Built-in protection against event-loop blocking**
+- **Intelligent task scheduler** for heavy CPU/I/O operations
+- **Graceful overload handler** with queue and backpressure system
+- **Multiprocess worker manager** with health monitoring
+- **Safe fallback to sync mode** for blocking routes
+- **Auto-restart on failure** for workers
 
 ## Installation
 
@@ -26,11 +37,11 @@ pip install proapi
 ```
 
 This will install ProAPI with all core dependencies including:
-- loguru (for logging)
+- loguru (for structured logging)
 - uvicorn (for ASGI server and auto-reloading)
-- cython (for performance optimization)
 - jinja2 (for templating)
 - watchdog (for file monitoring)
+- pydantic (for data validation)
 
 For development tools:
 
@@ -48,6 +59,18 @@ For Cloudflare Tunnel support:
 
 ```bash
 pip install proapi[cloudflare]
+```
+
+For Cython compilation support:
+
+```bash
+pip install proapi[cython]
+```
+
+For all features:
+
+```bash
+pip install proapi[full]
 ```
 
 ## Quick Start
@@ -71,53 +94,46 @@ if __name__ == "__main__":
 
 ## API Documentation
 
-ProAPI can automatically generate API documentation for your application using Swagger UI:
+ProAPI automatically generates API documentation for your application using Swagger UI at `/.docs`:
 
 ```python
+# Documentation is enabled by default at /.docs
+app = ProAPI()
+
+# You can customize the docs URL if needed
 app = ProAPI(
-    debug=True,
-    enable_docs=True,
-    docs_url="/docs",
-    docs_title="My API Documentation"
+    enable_docs=True,  # Already true by default
+    docs_url="/api-docs"  # Change from default /.docs
 )
 ```
 
-This will make interactive Swagger UI documentation available at `/docs` and OpenAPI specification at `/docs/json`.
+This makes interactive Swagger UI documentation available at the specified URL and OpenAPI specification at `{docs_url}/json`.
 
-Additionally, ProAPI automatically provides a default documentation endpoint at `/.docs` for all applications, regardless of whether you explicitly enable documentation. This makes it easy to quickly access API documentation without any additional configuration.
+The automatic documentation makes it easy to explore and test your API without any additional configuration.
 
-## Port Forwarding
+## Port Forwarding with Cloudflare
 
-ProAPI can automatically expose your local server to the internet:
+ProAPI can automatically expose your local server to the internet using Cloudflare Tunnel:
 
 ```python
-# Enable port forwarding in the app
-app = ProAPI(enable_forwarding=True)
-
-# Or enable it when running
+# Enable Cloudflare Tunnel when running
 app.run(forward=True)
-
-# Use Cloudflare Tunnel
-app.run(forward=True, forward_type="cloudflare")
-
-# Use localtunnel
-app.run(forward=True, forward_type="localtunnel")
 ```
 
 You can also enable it from the CLI:
 
 ```bash
-# Use ngrok (default)
+# Use Cloudflare Tunnel
 proapi run app.py --forward
 
-# Use Cloudflare Tunnel
-proapi run app.py --forward --forward-type cloudflare
-
 # Use Cloudflare with an authenticated tunnel
-proapi run app.py --forward --forward-type cloudflare --cf-token YOUR_TOKEN
+proapi run app.py --forward --cf-token YOUR_TOKEN
+```
 
-# Use localtunnel
-proapi run app.py --forward --forward-type localtunnel
+Note: You need to install the Cloudflare support package first:
+
+```bash
+pip install proapi[cloudflare]
 ```
 
 ## Template Rendering
@@ -256,25 +272,152 @@ Note: Auto-reloading is powered by uvicorn, which is now included as a core depe
 
 ## CLI Commands
 
-Create a new project:
+ProAPI comes with a powerful command-line interface for creating and running applications.
+
+### Initialize a new project
 
 ```bash
-proapi create myproject
+# Initialize in a new directory
+proapi init myproject
+
+# Initialize in the current directory
+proapi init .
+
+# Initialize with a specific template
+proapi init myproject --template api
 ```
 
-Run an application:
+Available templates:
+- `basic` - Simple app with basic routes (default)
+- `api` - REST API with modular structure and example endpoints
+- `web` - Web application with Jinja2 templates and static files
+
+### Run an application
 
 ```bash
+# Basic run
+proapi run app.py
+
+# Run with debug mode and auto-reload
 proapi run app.py --debug --reload
+
+# Run with fast mode for better performance
+proapi run app.py --fast
+
+# Run with Cloudflare port forwarding
+proapi run app.py --forward
+
+# Run a specific app instance from a module
+proapi run mymodule:app
+
+# Compile with Cython before running (requires proapi[cython])
+proapi -c run app.py
 ```
+
+### Check version and dependencies
+
+```bash
+# Show version information
+proapi version
+
+# Or use the shorthand
+proapi -v
+```
+
+This will display the ProAPI version, Python version, platform information, and the status of optional dependencies.
 
 ## Performance Optimization
 
-ProAPI can be compiled with Cython for better performance:
+ProAPI offers two ways to optimize performance:
+
+### Fast Mode
+
+Enable fast mode for optimized request handling and routing:
+
+```python
+# Enable fast mode when creating the app
+app = ProAPI(fast_mode=True)
+
+# Or enable it when running
+app.run(fast=True)
+```
+
+From the CLI:
 
 ```bash
+proapi run app.py --fast
+```
+
+### Cython Compilation
+
+For even better performance, you can compile your app with Cython:
+
+```bash
+# First install Cython support
+pip install proapi[cython]
+
+# Then compile and run
 proapi run app.py --compile
 ```
+
+## Reliability Features
+
+ProAPI includes advanced reliability features to ensure your application runs smoothly under heavy load and handles failures gracefully.
+
+### Event Loop Protection
+
+```python
+from proapi import ProAPI
+
+# Enable event loop protection (enabled by default)
+app = ProAPI(protect_event_loop=True)
+```
+
+### Intelligent Task Scheduler
+
+```python
+from proapi import ProAPI
+from proapi.scheduler import thread_task, process_task, auto_task
+
+app = ProAPI()
+
+# Automatically determine the best executor
+@app.get("/auto")
+@auto_task
+def auto_route(request):
+    # This will be automatically routed to a thread or process pool
+    return {"result": compute_something_heavy()}
+```
+
+### Graceful Overload Handler
+
+```python
+from proapi import ProAPI
+
+# Configure overload protection
+app = ProAPI(
+    enable_overload_protection=True,  # Enabled by default
+    max_concurrent_requests=100,      # Maximum concurrent requests
+    request_queue_size=1000           # Maximum queue size
+)
+```
+
+### Worker Auto-Restart
+
+```python
+from proapi import ProAPI
+
+# Enable auto-restart for workers
+app = ProAPI(
+    workers=4,                  # Number of worker processes
+    auto_restart_workers=True    # Enable auto-restart (enabled by default)
+)
+
+# Run the application
+app.run()
+```
+
+See the [Reliability Documentation](docs/reliability.md) for more details.
 
 ## License
 

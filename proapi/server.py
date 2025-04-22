@@ -527,7 +527,44 @@ def create_server(app, host, port, server_type=None, workers=1, use_reloader=Fal
 
     # Create the appropriate server
     if server_type == "multiworker":
-        return MultiWorkerServer(app, host, port, workers=workers, **kwargs)
+        # Check if auto_restart is enabled
+        if kwargs.get('auto_restart', False):
+            try:
+                from .worker_manager import WorkerManager
+
+                # Create command for worker processes
+                import sys
+                cmd = [sys.executable, "-m", "uvicorn", "proapi.asgi_adapter:app",
+                       "--host", host, "--port", str(port)]
+
+                # Create worker manager
+                app_logger.info(f"Using worker manager with auto-restart for {workers} workers")
+                manager = WorkerManager(
+                    cmd=cmd,
+                    num_workers=workers,
+                    worker_timeout=kwargs.get('request_timeout', 30),
+                    worker_max_requests=kwargs.get('worker_max_requests', 1000),
+                    worker_max_memory_mb=kwargs.get('worker_max_memory_mb', 512),
+                    worker_restart_delay=kwargs.get('worker_restart_delay', 3)
+                )
+
+                # Create a server wrapper for the worker manager
+                class WorkerManagerServer:
+                    def __init__(self, manager):
+                        self.manager = manager
+
+                    def start(self):
+                        self.manager.start()
+
+                    def stop(self):
+                        self.manager.stop()
+
+                return WorkerManagerServer(manager)
+            except ImportError:
+                app_logger.warning("Worker manager not available. Falling back to standard multiworker server.")
+                return MultiWorkerServer(app, host, port, workers=workers, **kwargs)
+        else:
+            return MultiWorkerServer(app, host, port, workers=workers, **kwargs)
     elif server_type == "uvicorn":
         import uvicorn
 

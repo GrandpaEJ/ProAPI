@@ -2,28 +2,59 @@
 
 ProAPI is a lightweight, beginner-friendly yet powerful Python web framework designed to make web development simple and intuitive.
 
+## Key Benefits
+
+- **Simpler than Flask/FastAPI** with intuitive API design
+- **Faster than FastAPI** with optimized routing and request handling
+- **Stable like Flask** with robust error handling
+- **Easy to use** with minimal boilerplate code
+- **Optional Cython compilation** for even better performance
+
 ## Documentation Sections
 
+### Core Concepts
 - [Getting Started](getting-started.md) - Basic usage and concepts
 - [Routing](routing.md) - URL routing and path parameters
 - [Request and Response](request-response.md) - Working with HTTP requests and responses
 - [Templates](templates.md) - Template rendering with Jinja2
 - [Sessions](sessions.md) - Session management
 - [Middleware](middleware.md) - Using and creating middleware
-- [API Documentation](api-docs.md) - Automatic API documentation
+
+### Features
+- [API Documentation](api-docs.md) - Automatic API documentation at /.docs
+- [WebSockets](websockets.md) - Real-time communication with WebSockets
+- [WebSockets Advanced](websockets_advanced.md) - Advanced WebSocket features
+
+### Performance
+- [Fast Mode](fast_mode.md) - Optimized request handling
+- [Optimization](optimization.md) - Performance optimization techniques
+
+### Tools and Deployment
 - [CLI](cli.md) - Command-line interface
 - [Production Deployment](deployment.md) - Deploying to production
 - [Advanced Features](advanced.md) - Advanced features and customization
 
+### Summary
+- [Summary](summary.md) - Overview of ProAPI features and capabilities
+
 ## Installation
+
+### Basic Installation
 
 ```bash
 pip install proapi
 ```
 
-For full functionality:
+### With Optional Features
 
 ```bash
+# For Cloudflare port forwarding
+pip install proapi[cloudflare]
+
+# For Cython compilation
+pip install proapi[cython]
+
+# For all features
 pip install proapi[full]
 ```
 
@@ -32,7 +63,8 @@ pip install proapi[full]
 ```python
 from proapi import ProAPI
 
-app = ProAPI(debug=True)
+# Create a ProAPI application with debug mode and fast mode enabled
+app = ProAPI(debug=True, fast_mode=True)
 
 @app.get("/")
 def index(request):
@@ -42,8 +74,22 @@ def index(request):
 def hello(name, request):
     return {"message": f"Hello, {name}!"}
 
+# API documentation is automatically available at /.docs
+
 if __name__ == "__main__":
     app.run()
+```
+
+### Creating a New Project
+
+You can quickly create a new project using the CLI:
+
+```bash
+# Initialize in a new directory
+proapi init myproject
+
+# Initialize in the current directory
+proapi init .
 ```
 
 ## Features
@@ -205,145 +251,90 @@ def error(request):
 
 ### CLI
 
-ProAPI provides a command-line interface:
+ProAPI provides a powerful command-line interface:
 
 ```bash
 # Run an application
 proapi run app.py
 
-# Run a specific app instance from a module
-proapi run module:app
+# Run with debug mode and auto-reload
+proapi run app.py --debug --reload
 
-# Run with specific port
-proapi run app.py --port 5000
-proapi run main:app --port 5500
+# Run with fast mode for better performance
+proapi run app.py --fast
 
-# Run with host options
-proapi run app.py --host local       # 127.0.0.1
-proapi run app.py --host all         # 0.0.0.0
-proapi run app.py --host 0.0.0.0     # All interfaces
-proapi run main:app --host 0.0.0.0   # All interfaces
-
-# Run with port forwarding (expose to the internet)
+# Run with Cloudflare port forwarding
 proapi run app.py --forward
-proapi run app.py --forward --forward-type ngrok
-proapi run app.py --forward --forward-type cloudflare
-proapi run app.py --forward --forward-type localtunnel
 
-# Run with Cloudflare authenticated tunnel
-proapi run app.py --forward --forward-type cloudflare --cf-token YOUR_TOKEN
+# Run a specific app instance from a module
+proapi run mymodule:app
 
 # Compile with Cython before running
 proapi -c run app.py
-proapi -c run main:app
 
-# Run with other options
-proapi run app.py --debug --port 8080 --workers 4
+# Initialize a new project
+proapi init myproject
 
-# Create a new project
-proapi create myproject
+# Initialize in the current directory
+proapi init .
+
+# Show version information
+proapi version
 ```
 
-#### CLI Command Reference
-
-```
-usage: proapi [-h] [-c] {run,create,version} ...
-
-ProAPI command-line interface
-
-options:
-  -h, --help            show this help message and exit
-  -c, --compile         Compile with Cython before running
-
-commands:
-  {run,create,version}  Command to run
-    run                 Run a ProAPI application
-    create              Create a new ProAPI project
-    version             Show version information
-```
-
-#### Run Command
-
-```
-usage: proapi run [-h] [--host HOST] [--port PORT] [--debug] [--reload]
-                  [--workers WORKERS] [--server SERVER]
-                  app
-
-positional arguments:
-  app                  Application module or file, optionally with app instance
-                       (module:app)
-
-options:
-  -h, --help           show this help message and exit
-  --host HOST          Host to bind to (use 'local' for 127.0.0.1 or 'all' for
-                       0.0.0.0)
-  --port PORT          Port to bind to
-  --debug              Enable debug mode
-  --reload             Enable auto-reload
-  --workers WORKERS    Number of worker processes
-  --server SERVER      Server type (default, multiworker)
-  --forward            Enable port forwarding to expose the app to the internet
-  --forward-type {ngrok,cloudflare,localtunnel}
-                       Port forwarding service to use (ngrok, cloudflare, or localtunnel)
-  --cf-token CF_TOKEN  Cloudflare Tunnel token (for authenticated tunnels)
-```
+See the [CLI documentation](cli.md) for more details.
 
 ### Cython Compilation
 
 ProAPI supports Cython compilation for improved performance:
 
 ```bash
+# Install Cython support
+pip install proapi[cython]
+
 # Run with Cython compilation
 proapi -c run app.py
 ```
 
 > **Note:** Cython compilation requires a C compiler and development tools to be installed on your system. On Windows, you'll need Visual Studio with C++ development tools. On Linux, you'll need gcc and Python development headers.
 
-### Port Forwarding
+### Port Forwarding with Cloudflare
 
-ProAPI supports port forwarding to expose your local server to the internet:
-
-```python
-# Enable port forwarding in the app
-app = ProAPI(enable_forwarding=True, forwarding_type="ngrok")
-
-# Or enable it when running
-app.run(forward=True, forward_type="ngrok")
-```
-
-You can also enable it from the CLI:
+ProAPI supports port forwarding to expose your local server to the internet using Cloudflare Tunnel:
 
 ```bash
-# Enable port forwarding with ngrok (default)
-proapi run app.py --forward
-
-# Use Cloudflare Tunnel
-proapi run app.py --forward --forward-type cloudflare
-
-# Use localtunnel
-proapi run app.py --forward --forward-type localtunnel
+# Install Cloudflare support
+pip install proapi[cloudflare]
 ```
 
-#### Cloudflare Tunnel
-
-ProAPI supports Cloudflare Tunnel for secure, authenticated tunnels:
+You can enable it when running your application:
 
 ```python
-# Enable Cloudflare Tunnel in the app
-app = ProAPI(enable_forwarding=True, forwarding_type="cloudflare")
+# Enable Cloudflare Tunnel when running
+app.run(forward=True)
+```
 
+Or from the CLI:
+
+```bash
+# Use Cloudflare Tunnel
+proapi run app.py --forward
+```
+
+#### Authenticated Tunnels
+
+For more control, you can use authenticated tunnels:
+
+```python
 # Run with an authenticated tunnel (requires Cloudflare account)
-app.run(forward=True, forward_type="cloudflare", forward_kwargs={"token": "YOUR_TOKEN"})
+app.run(forward=True, forward_kwargs={"token": "YOUR_TOKEN"})
 ```
 
 From the CLI:
 
 ```bash
-# Quick tunnel (no account required)
-proapi run app.py --forward --forward-type cloudflare
-
 # Authenticated tunnel (requires Cloudflare account)
-proapi run app.py --forward --forward-type cloudflare --cf-token YOUR_TOKEN
+proapi run app.py --forward --cf-token YOUR_TOKEN
 ```
 
 To create an authenticated tunnel:
@@ -358,25 +349,18 @@ To create an authenticated tunnel:
 
 ```python
 ProAPI(
-    debug=False,
-    template_dir="templates",
-    static_dir="static",
-    static_url="/static",
-    enable_cors=False,
-    enable_docs=False,
-    docs_url="/docs",
-    docs_title="API Documentation",
-    enable_forwarding=False,
-    forwarding_type="ngrok",
-    enable_sessions=False,
-    session_secret_key=None,
-    session_cookie_name="session",
-    session_max_age=3600,  # 1 hour
-    session_secure=None,  # Based on environment
-    session_http_only=True,
-    session_same_site="Lax",
-    session_backend="memory",
-    json_encoder=None
+    debug=False,                # Enable debug mode for detailed error messages
+    env="development",          # Environment: 'development', 'production', or 'testing'
+    template_dir="templates",   # Directory for Jinja2 templates
+    static_dir="static",       # Directory for static files
+    static_url="/static",      # URL prefix for static files
+    enable_cors=False,         # Enable CORS headers for cross-origin requests
+    enable_docs=True,          # Enable API documentation at /.docs
+    docs_url="/.docs",         # URL path for API documentation
+    enable_sessions=False,     # Enable session support for user state
+    session_secret_key=None,   # Secret key for signing session cookies
+    fast_mode=False,           # Enable optimized request handling
+    json_encoder=None          # Custom JSON encoder for response serialization
 )
 ```
 
@@ -403,13 +387,13 @@ def middleware(request):
 
 ```python
 app.run(
-    host="127.0.0.1",
-    port=8000,
-    server_type="default",
-    workers=1,
-    forward=None,  # Enable port forwarding (overrides enable_forwarding)
-    forward_type=None,  # Type of port forwarding (overrides forwarding_type)
-    **kwargs
+    host=None,      # Host to bind to (default: 127.0.0.1 in development, 0.0.0.0 in production)
+    port=8000,      # Port to bind to
+    workers=None,   # Number of worker processes (default: 1, or 2+ in production)
+    forward=False,  # Enable Cloudflare port forwarding
+    use_reloader=None,  # Enable auto-reloading when code changes
+    debug=None,     # Enable debug mode (overrides the instance setting)
+    fast=None       # Enable fast mode with optimized request handling
 )
 ```
 
@@ -434,24 +418,26 @@ Response(
 
 ### API Documentation
 
-ProAPI can automatically generate API documentation for your application using Swagger UI:
+ProAPI automatically generates API documentation for your application using Swagger UI:
+
+```python
+# Documentation is automatically available at /.docs
+app = ProAPI()
+```
+
+You can customize the documentation URL and title if needed:
 
 ```python
 app = ProAPI(
-    debug=True,
-    enable_docs=True,
-    docs_url="/docs",
-    docs_title="My API Documentation"
+    enable_docs=True,       # Already true by default
+    docs_url="/api-docs",   # Change from default /.docs
+    docs_title="My API Documentation"  # Custom title for documentation
 )
 ```
 
-This will make interactive Swagger UI documentation available at `/docs` and OpenAPI specification at `/docs/json`.
+This makes interactive Swagger UI documentation available at the specified URL and OpenAPI specification at `{docs_url}/json`.
 
-#### Default Documentation
-
-ProAPI automatically provides a default documentation endpoint at `/.docs` for all applications, regardless of whether you explicitly enable documentation. This makes it easy to quickly access API documentation without any additional configuration.
-
-To access the default documentation, simply navigate to `/.docs` in your browser.
+To access the documentation, simply navigate to `/.docs` (or your custom URL) in your browser.
 
 #### Documentation Features
 

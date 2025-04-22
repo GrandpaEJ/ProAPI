@@ -20,13 +20,19 @@ class ProAPI:
     """
     Main application class for ProAPI framework.
 
+    ProAPI is designed to be:
+    - Simpler than Flask/FastAPI with intuitive API design
+    - Faster than FastAPI with optimized routing and request handling
+    - Stable like Flask with robust error handling
+    - Easy to use with minimal boilerplate
+
     Example:
         from proapi import ProAPI
 
         app = ProAPI()
 
         @app.get("/")
-        def index():
+        def index(request):
             return {"message": "Hello, World!"}
 
         if __name__ == "__main__":
@@ -40,69 +46,50 @@ class ProAPI:
                  static_dir: str = "static",
                  static_url: str = "/static",
                  enable_cors: bool = False,
-                 enable_docs: bool = False,
-                 docs_url: str = "/docs",
-                 docs_title: str = "API Documentation",
-                 enable_forwarding: bool = False,
-                 forwarding_type: str = "ngrok",
-                 json_encoder: Optional[Type[json.JSONEncoder]] = None,
-                 # Session options
+                 enable_docs: bool = True,  # Default to True for better developer experience
+                 docs_url: str = "/.docs",  # Changed default to /.docs
                  enable_sessions: bool = False,
                  session_secret_key: Optional[str] = None,
-                 session_cookie_name: str = "session",
-                 session_max_age: int = 3600,  # 1 hour
-                 session_secure: Optional[bool] = None,  # Default based on env
-                 session_http_only: bool = True,
-                 session_same_site: str = "Lax",
-                 session_backend: str = "memory",  # 'memory' or 'file'
-                 session_backend_options: Optional[Dict[str, Any]] = None,
-                 # Logging options
+                 fast_mode: bool = False,  # New option for enabling fast mode by default
+                 json_encoder: Optional[Type[json.JSONEncoder]] = None,
+                 # Advanced options - most users won't need to change these
                  log_level: Optional[str] = None,  # Default will be based on env
-                 log_format: Optional[str] = None,
                  log_file: Optional[str] = None,
-                 # Production options
                  workers: int = 1,
-                 request_timeout: int = 30,  # Seconds
-                 max_request_size: int = 1024 * 1024,  # 1MB
-                 trusted_hosts: Optional[List[str]] = None,
-                 # Development options
-                 use_reloader: Optional[bool] = None):
+                 use_reloader: Optional[bool] = None,
+                 # Performance and reliability options
+                 protect_event_loop: bool = True,  # Protect against event loop blocking
+                 auto_offload_blocking: bool = True,  # Auto-offload blocking operations
+                 enable_overload_protection: bool = True,  # Enable graceful overload handling
+                 auto_restart_workers: bool = True,  # Auto-restart workers on failure
+                 max_concurrent_requests: int = 100,  # Maximum concurrent requests
+                 request_queue_size: int = 1000):
         """
         Initialize the ProAPI application.
 
         Args:
-            debug: Enable debug mode
+            debug: Enable debug mode for detailed error messages and logging
             env: Environment ('development', 'production', or 'testing')
-            template_dir: Directory for templates
+            template_dir: Directory for Jinja2 templates
             static_dir: Directory for static files
             static_url: URL prefix for static files
-            enable_cors: Enable CORS headers
-            enable_docs: Enable API documentation
+            enable_cors: Enable CORS headers for cross-origin requests
+            enable_docs: Enable API documentation at /.docs
             docs_url: URL path for API documentation
-            docs_title: Title for API documentation
-            enable_forwarding: Enable port forwarding
-            forwarding_type: Type of port forwarding
-            json_encoder: Custom JSON encoder
-            enable_sessions: Enable session support
-            session_secret_key: Secret key for signing session cookies (required if sessions enabled)
-            session_cookie_name: Name of the session cookie
-            session_max_age: Maximum age of the session in seconds
-            session_secure: Whether the session cookie is secure (default: True in production, False otherwise)
-            session_http_only: Whether the session cookie is HTTP-only
-            session_same_site: SameSite cookie attribute ('Strict', 'Lax', or 'None')
-            session_backend: Session storage backend ('memory' or 'file')
-            session_backend_options: Additional options for the session backend
+            enable_sessions: Enable session support for user state
+            session_secret_key: Secret key for signing session cookies (auto-generated if None)
+            fast_mode: Enable optimized request handling for better performance
+            json_encoder: Custom JSON encoder for response serialization
             log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-            log_format: Custom log format for Loguru
-            log_file: Path to log file (None for stderr only)
+            log_file: Path to log file (auto-configured based on environment)
             workers: Number of worker processes (for production)
-            request_timeout: Request timeout in seconds (for production)
-            max_request_size: Maximum request size in bytes (for production)
-            trusted_hosts: List of trusted hosts for production security (e.g., ['localhost', '127.0.0.1', '*.example.com'])
-                Host names can be specified with or without port numbers.
-                Wildcard domains are supported with the '*' prefix.
-            use_reloader: Enable auto-reloading when code changes (default: True in development, False in production)
-                Requires uvicorn to be installed (pip install uvicorn)
+            use_reloader: Enable auto-reloading when code changes (default: True in development)
+            protect_event_loop: Enable protection against event loop blocking
+            auto_offload_blocking: Automatically offload blocking operations to thread/process pools
+            enable_overload_protection: Enable graceful handling of server overload
+            auto_restart_workers: Automatically restart workers on failure
+            max_concurrent_requests: Maximum number of concurrent requests
+            request_queue_size: Maximum size of the request queue
         """
         # Store basic configuration
         self.debug = debug
@@ -113,25 +100,35 @@ class ProAPI:
         self.enable_cors = enable_cors
         self.enable_docs = enable_docs
         self.docs_url = docs_url
-        self.docs_title = docs_title
-        self.enable_forwarding = enable_forwarding
-        self.forwarding_type = forwarding_type
+        self.docs_title = "API Documentation"
         self.json_encoder = json_encoder
+
+        # Enable fast mode if specified
+        self._fast_mode = fast_mode
+
+        # Set forwarding defaults
+        self.enable_forwarding = False
+        self.forwarding_type = "cloudflare"
+
+        # Store performance and reliability options
+        self.protect_event_loop = protect_event_loop
+        self.auto_offload_blocking = auto_offload_blocking
+        self.enable_overload_protection = enable_overload_protection
+        self.auto_restart_workers = auto_restart_workers
+        self.max_concurrent_requests = max_concurrent_requests
+        self.request_queue_size = request_queue_size
 
         # Session configuration
         self.enable_sessions = enable_sessions
-        self.session_cookie_name = session_cookie_name
-        self.session_max_age = session_max_age
-        self.session_http_only = session_http_only
-        self.session_same_site = session_same_site
-        self.session_backend = session_backend
-        self.session_backend_options = session_backend_options or {}
+        self.session_cookie_name = "session"
+        self.session_max_age = 3600  # 1 hour
+        self.session_http_only = True
+        self.session_same_site = "Lax"
+        self.session_backend = "memory"
+        self.session_backend_options = {}
 
-        # Set session_secure based on environment if not specified
-        if session_secure is None:
-            self.session_secure = (self.env == "production")
-        else:
-            self.session_secure = session_secure
+        # Set session_secure based on environment
+        self.session_secure = (self.env == "production")
 
         # Generate a random secret key if not provided
         if enable_sessions and not session_secret_key:
@@ -144,9 +141,9 @@ class ProAPI:
 
         # Production configuration
         self.workers = workers
-        self.request_timeout = request_timeout
-        self.max_request_size = max_request_size
-        self.trusted_hosts = trusted_hosts or []
+        self.request_timeout = 30  # Seconds
+        self.max_request_size = 1024 * 1024  # 1MB
+        self.trusted_hosts = []
 
         # Development configuration
         # Set default reloader setting based on environment
@@ -161,14 +158,6 @@ class ProAPI:
             if debug:
                 app_logger.warning("Debug mode is enabled in production environment")
 
-            # In production, disable docs by default unless explicitly enabled
-            if not enable_docs and docs_url == "/docs":
-                self.enable_docs = False
-
-            # In production, disable forwarding by default
-            if enable_forwarding:
-                app_logger.warning("Port forwarding is enabled in production environment")
-
         # Logging configuration - set defaults based on environment
         if log_level is None:
             if self.env == "development" or self.debug:
@@ -180,7 +169,7 @@ class ProAPI:
         else:
             self.log_level = log_level
 
-        self.log_format = log_format
+        self.log_format = None  # Use default format
         self.log_file = log_file
 
         # For production, ensure we have a log file
@@ -373,26 +362,21 @@ class ProAPI:
         if self.env == "production" and not self.session_secure:
             app_logger.warning("Session cookies are not secure in production environment")
 
-    def run(self, host: str = None, port: int = None,
-            server_type: str = None, workers: int = None,
-            forward: bool = None, forward_type: str = None,
-            forward_kwargs: Dict[str, Any] = None,
+    def run(self, host: str = None, port: int = 8000,
+            workers: int = None, forward: bool = False,
             use_reloader: bool = None, debug: bool = None,
-            fast: bool = False, **kwargs):
+            fast: bool = None, **kwargs):
         """
         Run the application server.
 
         Args:
-            host: Host to bind to (defaults based on environment)
+            host: Host to bind to (defaults to 127.0.0.1 in development, 0.0.0.0 in production)
             port: Port to bind to (defaults to 8000)
-            server_type: Server type ('default', 'uvicorn', 'gunicorn', 'multiworker')
-            workers: Number of worker processes (overrides the instance setting)
-            forward: Enable port forwarding (overrides enable_forwarding)
-            forward_type: Type of port forwarding (overrides forwarding_type)
-            forward_kwargs: Additional forwarding options
-            use_reloader: Enable auto-reloading (overrides the instance setting)
+            workers: Number of worker processes (defaults to 1, or 2+ in production)
+            forward: Enable port forwarding with Cloudflare
+            use_reloader: Enable auto-reloading when code changes
             debug: Enable debug mode (overrides the instance setting)
-            fast: Enable fast mode with optimized request handling (default: False)
+            fast: Enable fast mode with optimized request handling
             **kwargs: Additional server options
         """
         from .server import create_server
@@ -404,15 +388,6 @@ class ProAPI:
             else:
                 host = "127.0.0.1"  # Localhost in development
 
-        if port is None:
-            port = 8000  # Default port
-
-        if server_type is None:
-            if self.env == "production":
-                server_type = "multiworker"  # Use multi-worker in production
-            else:
-                server_type = "default"  # Use default server in development
-
         # Use instance workers setting if not specified
         if workers is None:
             workers = self.workers
@@ -422,35 +397,29 @@ class ProAPI:
             self.debug = debug
 
         # Enable fast mode if specified
-        if fast:
-            # Set fast mode flag
-            self._fast_mode = True
+        if fast is not None:
+            self._fast_mode = fast
+
+        # Log fast mode status
+        if self._fast_mode:
             app_logger.info(f"Running in fast mode with optimized performance")
             print(f"Running in fast mode with optimized performance")
 
-            # Reset cache statistics
-            from .optimized import reset_cache_stats
-            reset_cache_stats()
-
-            # Use the new runner for faster performance
-            from .runner import run_app
-            run_app(app_instance=self, host=host, port=port, reload=use_reloader, workers=workers, debug=debug)
-            return
+            # Reset cache statistics if optimized module is available
+            try:
+                from .optimized import reset_cache_stats
+                reset_cache_stats()
+            except ImportError:
+                app_logger.warning("Optimized module not available, falling back to standard mode")
+                self._fast_mode = False
 
         # In production, ensure we have at least 2 workers
         if self.env == "production" and workers < 2:
             workers = 2
             app_logger.info(f"Increased workers to {workers} for production environment")
 
-        # Determine if forwarding should be enabled
-        enable_forwarding = forward if forward is not None else self.enable_forwarding
-
-        # In production, disable forwarding unless explicitly enabled
-        if self.env == "production" and enable_forwarding:
-            app_logger.warning("Port forwarding is enabled in production environment")
-
-        forwarding_type = forward_type or self.forwarding_type
-        forwarding_kwargs = forward_kwargs or {}
+        # Determine server type based on environment
+        server_type = "uvicorn"  # Always use uvicorn for better performance
 
         # Add production settings to kwargs
         if self.env == "production":
@@ -463,24 +432,90 @@ class ProAPI:
         app_logger.info(f"ProAPI server starting at http://{host}:{port}")
         app_logger.info(f"Environment: {self.env.upper()}")
         app_logger.info(f"Debug mode: {'ON' if self.debug else 'OFF'}")
-        app_logger.info(f"Server type: {server_type}, Workers: {workers}")
+        app_logger.info(f"Fast mode: {'ON' if self._fast_mode else 'OFF'}")
+        app_logger.info(f"Workers: {workers}")
 
         # Print to console as well
         print(f"ProAPI server starting at http://{host}:{port}")
         print(f"Environment: {self.env.upper()}")
         print(f"Debug mode: {'ON' if self.debug else 'OFF'}")
-        print(f"Server type: {server_type}, Workers: {workers}")
+        print(f"Fast mode: {'ON' if self._fast_mode else 'OFF'}")
+        print(f"Workers: {workers}")
 
         # Start port forwarding if enabled
-        if enable_forwarding:
-            self._start_forwarding(port, host, forwarding_type, forwarding_kwargs)
+        if forward:
+            try:
+                from .forwarding import create_forwarder, get_local_ip
+
+                # Use the local IP if host is 0.0.0.0
+                local_host = get_local_ip() if host == "0.0.0.0" else host
+
+                app_logger.info(f"Starting Cloudflare port forwarding...")
+                print(f"Starting Cloudflare port forwarding...")
+
+                # Create and start the forwarder
+                self._forwarder = create_forwarder(port, local_host, "cloudflare")
+                if self._forwarder.start():
+                    # Wait for the public URL to be available
+                    for _ in range(10):
+                        if self._forwarder.public_url:
+                            app_logger.success(f"Public URL: {self._forwarder.public_url}")
+                            print(f"Public URL: {self._forwarder.public_url}")
+                            break
+                        time.sleep(0.5)
+            except ImportError:
+                app_logger.warning("Forwarding module not available. Install with: pip install proapi[cloudflare]")
+                print("Forwarding module not available. Install with: pip install proapi[cloudflare]")
+                self._forwarder = None
+            except Exception as e:
+                app_logger.exception(f"Error starting port forwarding: {e}")
+                print(f"Error starting port forwarding: {e}")
+                self._forwarder = None
 
         # Determine if reloader should be used
         should_use_reloader = use_reloader if use_reloader is not None else self.use_reloader
 
+        # Initialize performance and reliability features
+        if self.protect_event_loop:
+            try:
+                from .loop_protection import start_loop_monitoring
+                start_loop_monitoring()
+                app_logger.info("Event loop protection enabled")
+            except ImportError:
+                app_logger.warning("Event loop protection module not available")
+
+        if self.enable_overload_protection:
+            try:
+                from .overload_handler import configure_overload_handler
+                configure_overload_handler(
+                    max_size=self.request_queue_size,
+                    max_concurrent=self.max_concurrent_requests
+                )
+                app_logger.info(f"Overload protection enabled (max_concurrent={self.max_concurrent_requests}, queue_size={self.request_queue_size})")
+            except ImportError:
+                app_logger.warning("Overload protection module not available")
+
+        # Configure blocking detection if enabled
+        if self.auto_offload_blocking:
+            try:
+                from .blocking_handler import configure_blocking_detection
+                configure_blocking_detection(auto_offload=True)
+                app_logger.info("Automatic blocking operation detection and offloading enabled")
+            except ImportError:
+                app_logger.warning("Blocking detection module not available")
+
         # Create and start the server, passing the reloader option
+        server_kwargs = kwargs.copy()
+
+        # Add auto-restart option if enabled
+        if self.auto_restart_workers and self.env == "production":
+            server_kwargs["auto_restart"] = True
+            app_logger.info("Worker auto-restart enabled")
+
         self._server = create_server(
-            self, host, port, server_type, workers, use_reloader=should_use_reloader, **kwargs
+            self, host, port, server_type, workers,
+            use_reloader=should_use_reloader,
+            **server_kwargs
         )
 
         try:

@@ -12,44 +12,129 @@ from .logging import app_logger
 
 def main():
     """Main CLI entry point"""
-    parser = argparse.ArgumentParser(description="ProAPI command-line interface")
+    parser = argparse.ArgumentParser(
+        description="ProAPI command-line interface",
+        epilog="For more information, visit: https://github.com/GrandpaEJ/ProAPI",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+
+    # Add description with examples
+    parser.description = """
+ProAPI command-line interface for creating and running web applications.
+
+Examples:
+  # Initialize a new project
+  proapi init myproject
+
+  # Initialize in current directory
+  proapi init .
+
+  # Run an application
+  proapi run app.py
+
+  # Run with options
+  proapi run app.py --debug --reload --fast
+
+  # Compile and run
+  proapi -c run app.py
+"""
 
     # Add global options
-    parser.add_argument("-c", "--compile", action="store_true", help="Compile with Cython before running")
+    parser.add_argument("-c", "--compile", action="store_true",
+                       help="Compile with Cython before running (requires proapi[cython])")
+    parser.add_argument("-v", "--version", action="store_true",
+                       help="Show version information and exit")
 
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
     # Run command
-    run_parser = subparsers.add_parser("run", help="Run a ProAPI application")
-    run_parser.add_argument("app", help="Application module or file, optionally with app instance (module:app)")
+    run_parser = subparsers.add_parser(
+        "run",
+        help="Run a ProAPI application",
+        description="""Run a ProAPI application with various options.
+
+Examples:
+  # Run a simple application
+  proapi run app.py
+
+  # Run with debug mode and auto-reload
+  proapi run app.py --debug --reload
+
+  # Run with fast mode for better performance
+  proapi run app.py --fast
+
+  # Run with Cloudflare port forwarding
+  proapi run app.py --forward
+
+  # Run a specific app instance from a module
+  proapi run mymodule:app
+""",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    run_parser.add_argument("app",
+                          help="Application module or file, optionally with app instance (module:app)")
     run_parser.add_argument("--host", default="127.0.0.1",
                           help="Host to bind to (use 'local' for 127.0.0.1 or 'all' for 0.0.0.0)")
-    run_parser.add_argument("--port", type=int, default=8000, help="Port to bind to")
-    run_parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    run_parser.add_argument("--reload", action="store_true", help="Enable auto-reload (requires uvicorn)")
-    run_parser.add_argument("--workers", type=int, default=1, help="Number of worker processes")
-    run_parser.add_argument("--server", default="default", help="Server type (default, multiworker)")
-    run_parser.add_argument("--forward", action="store_true", help="Enable port forwarding to expose the app to the internet")
-    run_parser.add_argument("--forward-type", default="ngrok", choices=["ngrok", "cloudflare", "localtunnel"],
-                          help="Port forwarding service to use (ngrok, cloudflare, or localtunnel)")
-    run_parser.add_argument("--cf-token", help="Cloudflare Tunnel token (for authenticated tunnels)")
+    run_parser.add_argument("--port", type=int, default=8000,
+                          help="Port to bind to (default: 8000)")
+    run_parser.add_argument("--debug", action="store_true",
+                          help="Enable debug mode for detailed error messages")
+    run_parser.add_argument("--reload", action="store_true",
+                          help="Enable auto-reload when code changes")
+    run_parser.add_argument("--workers", type=int, default=1,
+                          help="Number of worker processes (default: 1, production: 2+)")
+    run_parser.add_argument("--fast", action="store_true",
+                          help="Enable fast mode with optimized request handling for better performance")
+    run_parser.add_argument("--forward", action="store_true",
+                          help="Enable Cloudflare port forwarding to expose the app to the internet (requires proapi[cloudflare])")
+    run_parser.add_argument("--cf-token",
+                          help="Cloudflare Tunnel token for authenticated tunnels")
 
-    # Create command
-    create_parser = subparsers.add_parser("create", help="Create a new ProAPI project")
-    create_parser.add_argument("name", help="Project name")
-    create_parser.add_argument("--template", default="basic", help="Project template")
+    # Init command
+    init_parser = subparsers.add_parser(
+        "init",
+        help="Initialize a new ProAPI project",
+        description="""Initialize a new ProAPI project in the specified directory or current directory.
+
+Examples:
+  # Initialize in a new directory
+  proapi init myproject
+
+  # Initialize in the current directory
+  proapi init .
+
+  # Initialize with a specific template
+  proapi init myproject --template api
+""",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    init_parser.add_argument("name", nargs="?", default=".",
+                           help="Project name or directory (default: current directory)")
+    init_parser.add_argument("--template", default="basic", choices=["basic", "api", "web"],
+                           help="""Project template to use:
+  basic - Simple app with basic routes (default)
+  api   - REST API with modular structure and example endpoints
+  web   - Web application with Jinja2 templates and static files""")
 
     # Version command
-    version_parser = subparsers.add_parser("version", help="Show version information")
+    version_parser = subparsers.add_parser(
+        "version",
+        help="Show version information",
+        description="Show ProAPI and Python version information")
 
     # Parse arguments
     args = parser.parse_args()
 
+    # Handle version flag
+    if hasattr(args, 'version') and args.version:
+        version_command()
+        return
+
     # Handle commands
     if args.command == "run":
         run_command(args)
-    elif args.command == "create":
-        create_command(args)
+    elif args.command == "init":
+        init_command(args)
     elif args.command == "version":
         version_command()
     else:
@@ -107,18 +192,18 @@ def run_command(args):
 
         # Prepare forwarding kwargs
         forward_kwargs = {}
-        if args.forward_type == "cloudflare" and hasattr(args, 'cf_token') and args.cf_token:
+        if hasattr(args, 'cf_token') and args.cf_token:
             forward_kwargs['token'] = args.cf_token
 
+        # Run with simplified parameters
         app_instance.run(
             host=host,
             port=args.port,
-            server_type=args.server,
             workers=args.workers,
             forward=args.forward,
-            forward_type=args.forward_type,
-            forward_kwargs=forward_kwargs,
-            use_reloader=args.reload
+            use_reloader=args.reload,
+            debug=args.debug,
+            fast=args.fast
         )
     except KeyboardInterrupt:
         app_logger.info("Server stopped")
@@ -126,45 +211,104 @@ def run_command(args):
     finally:
         pass  # No need to clean up the reloader here, it's handled by the ProAPI class
 
-def create_command(args):
-    """Create a new ProAPI project"""
-    project_name = args.name
+def init_command(args):
+    """Initialize a new ProAPI project"""
+    project_path = args.name
     template = args.template
 
-    # Create project directory
-    if os.path.exists(project_name):
-        app_logger.error(f"Directory {project_name} already exists")
-        print(f"Error: Directory {project_name} already exists")
-        return
+    # Determine project name and directory
+    if project_path == ".":
+        # Initialize in current directory
+        project_dir = os.getcwd()
+        project_name = os.path.basename(project_dir)
+    else:
+        # Initialize in specified directory
+        project_dir = os.path.abspath(project_path)
+        project_name = os.path.basename(project_dir)
 
-    os.makedirs(project_name)
+    # Create project directory if it doesn't exist
+    if not os.path.exists(project_dir):
+        os.makedirs(project_dir)
+    elif not os.path.isdir(project_dir):
+        app_logger.error(f"{project_dir} exists but is not a directory")
+        print(f"Error: {project_dir} exists but is not a directory")
+        return
+    elif os.listdir(project_dir) and project_path != ".":
+        # Only error if directory is not empty and not current directory
+        app_logger.error(f"Directory {project_dir} is not empty")
+        print(f"Error: Directory {project_dir} is not empty")
+        return
 
     # Create project files based on template
     if template == "basic":
-        create_basic_template(project_name)
+        create_basic_template(project_dir)
     elif template == "api":
-        create_api_template(project_name)
+        create_api_template(project_dir)
     elif template == "web":
-        create_web_template(project_name)
+        create_web_template(project_dir)
     else:
         app_logger.error(f"Unknown template {template}")
         print(f"Error: Unknown template {template}")
         return
 
-    app_logger.success(f"Project {project_name} created successfully")
-    app_logger.info(f"To run the project: cd {project_name} && python -m proapi run app.py")
+    app_logger.success(f"Project initialized successfully in {project_dir}")
 
-    print(f"Project {project_name} created successfully")
-    print(f"To run the project: cd {project_name} && python -m proapi run app.py")
+    # Determine the run command based on whether we're in the project directory
+    if project_path == ".":
+        run_cmd = "python -m proapi run app.py"
+    else:
+        run_cmd = f"cd {project_path} && python -m proapi run app.py"
+
+    app_logger.info(f"To run the project: {run_cmd}")
+    print(f"Project initialized successfully in {project_dir}")
+    print(f"To run the project: {run_cmd}")
 
 def version_command():
     """Show version information"""
+    import platform
     from . import __version__
+
     app_logger.info(f"ProAPI version {__version__}")
     app_logger.info(f"Python version: {sys.version}")
 
-    print(f"ProAPI version {__version__}")
-    print("Python version:", sys.version)
+    print(f"\nProAPI version: {__version__}")
+    print(f"Python version: {platform.python_version()}")
+    print(f"Platform: {platform.platform()}")
+
+    # Check for optional dependencies
+    print("\nOptional dependencies:")
+
+    try:
+        import cython
+        print(f"✓ Cython: {cython.__version__}")
+    except ImportError:
+        print("✗ Cython: Not installed (required for compilation)")
+
+    try:
+        import cloudflared
+        print(f"✓ Cloudflared: {getattr(cloudflared, '__version__', 'Unknown')}")
+    except ImportError:
+        print("✗ Cloudflared: Not installed (required for port forwarding)")
+
+    try:
+        import uvicorn
+        print(f"✓ Uvicorn: {uvicorn.__version__}")
+    except ImportError:
+        print("✗ Uvicorn: Not installed (required for server)")
+
+    try:
+        import jinja2
+        print(f"✓ Jinja2: {jinja2.__version__}")
+    except ImportError:
+        print("✗ Jinja2: Not installed (required for templating)")
+
+    try:
+        import loguru
+        print(f"✓ Loguru: {loguru.__version__}")
+    except ImportError:
+        print("✗ Loguru: Not installed (required for logging)")
+
+    print("\nFor more information, visit: https://github.com/GrandpaEJ/ProAPI")
 
 def load_app(app_path):
     """
@@ -287,39 +431,42 @@ setup(
         if os.path.exists("setup_temp.py"):
             os.remove("setup_temp.py")
 
-def create_basic_template(project_name):
+def create_basic_template(project_dir):
     """
     Create a basic project template.
 
     Args:
-        project_name: Project name
+        project_dir: Project directory path
     """
     # Create app.py
     app_py = """from proapi import ProAPI
 
-app = ProAPI(debug=True)
+# Create a ProAPI application with debug mode and fast mode enabled
+app = ProAPI(debug=True, fast_mode=True)
 
 @app.get("/")
-def index():
+def index(request):
     return {"message": "Hello, World!"}
 
 @app.get("/hello/{name}")
-def hello(name):
+def hello(name, request):
     return {"message": f"Hello, {name}!"}
 
 @app.post("/echo")
 def echo(request):
     return request.json
 
+# API documentation is automatically available at /.docs
+
 if __name__ == "__main__":
     app.run()
 """
 
-    with open(os.path.join(project_name, "app.py"), "w") as f:
+    with open(os.path.join(project_dir, "app.py"), "w") as f:
         f.write(app_py)
 
     # Create README.md
-    readme_md = f"""# {project_name}
+    readme_md = f"""# {os.path.basename(project_dir)}
 
 A ProAPI project.
 
@@ -342,24 +489,25 @@ python app.py
 - POST /echo - Echoes the JSON request body
 """
 
-    with open(os.path.join(project_name, "README.md"), "w") as f:
+    with open(os.path.join(project_dir, "README.md"), "w") as f:
         f.write(readme_md)
 
-def create_api_template(project_name):
+def create_api_template(project_dir):
     """
     Create an API project template.
 
     Args:
-        project_name: Project name
+        project_dir: Project directory path
     """
     # Create directories
-    os.makedirs(os.path.join(project_name, "routes"))
-    os.makedirs(os.path.join(project_name, "models"))
+    os.makedirs(os.path.join(project_dir, "routes"), exist_ok=True)
+    os.makedirs(os.path.join(project_dir, "models"), exist_ok=True)
 
     # Create app.py
     app_py = """from proapi import ProAPI
 
-app = ProAPI(debug=True)
+# Create a ProAPI application with debug mode and fast mode enabled
+app = ProAPI(debug=True, fast_mode=True)
 
 # Import routes
 from routes import users, items
@@ -369,14 +517,16 @@ app.use(users.router)
 app.use(items.router)
 
 @app.get("/")
-def index():
+def index(request):
     return {"message": "API is running"}
+
+# API documentation is automatically available at /.docs
 
 if __name__ == "__main__":
     app.run()
 """
 
-    with open(os.path.join(project_name, "app.py"), "w") as f:
+    with open(os.path.join(project_dir, "app.py"), "w") as f:
         f.write(app_py)
 
     # Create routes/users.py
@@ -401,7 +551,7 @@ def create_user(request):
     return {"id": 3, **user_data}
 """
 
-    with open(os.path.join(project_name, "routes", "users.py"), "w") as f:
+    with open(os.path.join(project_dir, "routes", "users.py"), "w") as f:
         f.write(users_py)
 
     # Create routes/items.py
@@ -426,19 +576,19 @@ def create_item(request):
     return {"id": 3, **item_data}
 """
 
-    with open(os.path.join(project_name, "routes", "items.py"), "w") as f:
+    with open(os.path.join(project_dir, "routes", "items.py"), "w") as f:
         f.write(items_py)
 
     # Create routes/__init__.py
-    with open(os.path.join(project_name, "routes", "__init__.py"), "w") as f:
+    with open(os.path.join(project_dir, "routes", "__init__.py"), "w") as f:
         f.write("")
 
     # Create models/__init__.py
-    with open(os.path.join(project_name, "models", "__init__.py"), "w") as f:
+    with open(os.path.join(project_dir, "models", "__init__.py"), "w") as f:
         f.write("")
 
     # Create README.md
-    readme_md = f"""# {project_name}
+    readme_md = f"""# {os.path.basename(project_dir)}
 
 A ProAPI API project.
 
@@ -459,36 +609,37 @@ python -m proapi run app.py
 - POST /items - Create a new item
 """
 
-    with open(os.path.join(project_name, "README.md"), "w") as f:
+    with open(os.path.join(project_dir, "README.md"), "w") as f:
         f.write(readme_md)
 
-def create_web_template(project_name):
+def create_web_template(project_dir):
     """
     Create a web project template.
 
     Args:
-        project_name: Project name
+        project_dir: Project directory path
     """
     # Create directories
-    os.makedirs(os.path.join(project_name, "templates"))
-    os.makedirs(os.path.join(project_name, "static", "css"))
-    os.makedirs(os.path.join(project_name, "static", "js"))
+    os.makedirs(os.path.join(project_dir, "templates"), exist_ok=True)
+    os.makedirs(os.path.join(project_dir, "static", "css"), exist_ok=True)
+    os.makedirs(os.path.join(project_dir, "static", "js"), exist_ok=True)
 
     # Create app.py
     app_py = """from proapi import ProAPI, render
 
+# Create a ProAPI application with debug mode enabled
 app = ProAPI(debug=True)
 
 @app.get("/")
-def index():
+def index(request):
     return render("index.html", title="Home", message="Welcome to ProAPI!")
 
 @app.get("/about")
-def about():
+def about(request):
     return render("about.html", title="About")
 
 @app.get("/contact")
-def contact():
+def contact(request):
     return render("contact.html", title="Contact")
 
 @app.post("/contact")
@@ -498,11 +649,13 @@ def submit_contact(request):
                   title="Thank You",
                   name=form_data.get("name", ""))
 
+# API documentation is automatically available at /.docs
+
 if __name__ == "__main__":
     app.run()
 """
 
-    with open(os.path.join(project_name, "app.py"), "w") as f:
+    with open(os.path.join(project_dir, "app.py"), "w") as f:
         f.write(app_py)
 
     # Create templates/base.html
@@ -538,7 +691,7 @@ if __name__ == "__main__":
 </html>
 """
 
-    with open(os.path.join(project_name, "templates", "base.html"), "w") as f:
+    with open(os.path.join(project_dir, "templates", "base.html"), "w") as f:
         f.write(base_html)
 
     # Create templates/index.html
@@ -551,7 +704,7 @@ if __name__ == "__main__":
 {% endblock %}
 """
 
-    with open(os.path.join(project_name, "templates", "index.html"), "w") as f:
+    with open(os.path.join(project_dir, "templates", "index.html"), "w") as f:
         f.write(index_html)
 
     # Create templates/about.html
@@ -564,7 +717,7 @@ if __name__ == "__main__":
 {% endblock %}
 """
 
-    with open(os.path.join(project_name, "templates", "about.html"), "w") as f:
+    with open(os.path.join(project_dir, "templates", "about.html"), "w") as f:
         f.write(about_html)
 
     # Create templates/contact.html
@@ -594,7 +747,7 @@ if __name__ == "__main__":
 {% endblock %}
 """
 
-    with open(os.path.join(project_name, "templates", "contact.html"), "w") as f:
+    with open(os.path.join(project_dir, "templates", "contact.html"), "w") as f:
         f.write(contact_html)
 
     # Create templates/contact_success.html
@@ -607,7 +760,7 @@ if __name__ == "__main__":
 {% endblock %}
 """
 
-    with open(os.path.join(project_name, "templates", "contact_success.html"), "w") as f:
+    with open(os.path.join(project_dir, "templates", "contact_success.html"), "w") as f:
         f.write(contact_success_html)
 
     # Create static/css/style.css
@@ -690,7 +843,7 @@ button:hover {
 }
 """
 
-    with open(os.path.join(project_name, "static", "css", "style.css"), "w") as f:
+    with open(os.path.join(project_dir, "static", "css", "style.css"), "w") as f:
         f.write(style_css)
 
     # Create static/js/main.js
@@ -703,11 +856,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 """
 
-    with open(os.path.join(project_name, "static", "js", "main.js"), "w") as f:
+    with open(os.path.join(project_dir, "static", "js", "main.js"), "w") as f:
         f.write(main_js)
 
     # Create README.md
-    readme_md = f"""# {project_name}
+    readme_md = f"""# {os.path.basename(project_dir)}
 
 A ProAPI web project.
 
@@ -724,7 +877,7 @@ python -m proapi run app.py
 - Contact (/contact)
 """
 
-    with open(os.path.join(project_name, "README.md"), "w") as f:
+    with open(os.path.join(project_dir, "README.md"), "w") as f:
         f.write(readme_md)
 
 if __name__ == "__main__":

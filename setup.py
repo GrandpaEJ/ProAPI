@@ -39,7 +39,7 @@ if USE_CYTHON:
 setup(
     name="proapi",
     version=version,
-    description="A lightweight, beginner-friendly yet powerful Python web framework",
+    description="A lightweight, beginner-friendly yet powerful Python web framework - simpler than Flask, faster than FastAPI",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="ProAPI Team",
@@ -49,10 +49,11 @@ setup(
     ext_modules=ext_modules,
     install_requires=[
         "loguru>=0.7.0",
-        "uvicorn>=0.20.0",
-        "cython>=0.29.0",
+        "uvicorn>=0.23.0",
         "jinja2>=3.0.0",
-        "watchdog>=3.0.0"
+        "watchdog>=3.0.0",
+        "pydantic>=2.0.0",
+        "psutil>=5.9.0"  # Required for worker monitoring and resource usage tracking
     ],
     extras_require={
         "dev": [
@@ -64,11 +65,19 @@ setup(
         ],
         "prod": [
             "gunicorn>=21.0.0",
-            "psutil>=5.9.0",
             "python-dotenv>=1.0.0"
         ],
         "cloudflare": [
             "cloudflared>=0.1.0"
+        ],
+        "cython": [
+            "cython>=0.29.0"
+        ],
+        "full": [
+            "gunicorn>=21.0.0",
+            "python-dotenv>=1.0.0",
+            "cloudflared>=0.1.0",
+            "cython>=0.29.0"
         ]
     },
     entry_points={
