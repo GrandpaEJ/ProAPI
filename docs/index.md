@@ -7,6 +7,7 @@ ProAPI is a lightweight, beginner-friendly yet powerful Python web framework. It
 - **Decorator-based routing** - Define routes with simple decorators like `@app.get()`, `@app.post()`, etc.
 - **Simple template rendering** - Render templates with Jinja2
 - **Easy server startup** - Start your server with a simple `app.run()`
+- **Session management** - Built-in support for user sessions
 - **Async support** - Optional async support for high-performance applications
 - **Cython-based compilation** - Optional Cython-based compilation for speed
 - **Minimal dependencies** - Keep your project lightweight
@@ -15,6 +16,9 @@ ProAPI is a lightweight, beginner-friendly yet powerful Python web framework. It
 - **Automatic API documentation** - Generate API documentation with Swagger UI
 - **Structured logging** - Built-in logging with Loguru
 - **CLI commands** - Command-line interface for common tasks
+- **WebSocket support** - Built-in WebSocket support with room management and broadcasting
+- **Fast mode** - Optimized request handling with route caching and object pooling
+- **Response compression** - Automatic response compression for better performance
 
 ## Installation
 
@@ -27,14 +31,24 @@ pip install proapi
 ```python
 from proapi import ProAPI
 
-app = ProAPI()
+app = ProAPI(debug=True)
 
 @app.get("/")
-def index():
+def index(request):
     return {"message": "Hello, World!"}
 
+# WebSocket example
+@app.websocket("/ws")
+async def websocket_handler(websocket):
+    await websocket.accept()
+
+    while True:
+        message = await websocket.receive_text()
+        await websocket.send_text(f"Echo: {message}")
+
 if __name__ == "__main__":
-    app.run()
+    # Run with fast mode for better performance
+    app.run(fast=True)
 ```
 
 ## Documentation Sections
@@ -43,6 +57,7 @@ if __name__ == "__main__":
 - [Routing](routing.md) - URL routing and path parameters
 - [Request and Response](request-response.md) - Working with HTTP requests and responses
 - [Templates](templates.md) - Template rendering with Jinja2
+- [Sessions](sessions.md) - Session management
 - [Middleware](middleware.md) - Using and creating middleware
 - [API Documentation](api-docs.md) - Automatic API documentation
 - [CLI](cli.md) - Command-line interface

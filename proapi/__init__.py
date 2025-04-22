@@ -10,9 +10,11 @@ Features:
 - Minimal dependencies
 - Built-in JSON support
 - Middleware system
+- Session management
 - Automatic API documentation
 - Structured logging with Loguru
 - CLI commands
+- WebSocket support
 
 Usage:
     from proapi import ProAPI
@@ -33,11 +35,24 @@ import sys
 if sys.version_info < (3, 7):
     raise RuntimeError("ProAPI requires Python 3.7 or higher")
 
-__version__ = "0.1.0"
+__version__ = "0.3.0"
 
 from .core import ProAPI
 from .routing import Route
 from .templating import render
 from .logging import app_logger, setup_logger, get_logger
+from .session import Session, SessionManager
 
-__all__ = ["ProAPI", "Route", "render", "app_logger", "setup_logger", "get_logger"]
+# Import helpers for easier usage
+from .helpers import redirect, jsonify
+
+# Create a request proxy for global access
+from .request_proxy import request
+
+# Create a session proxy for global access
+from .session_proxy import session
+
+__all__ = [
+    "ProAPI", "Route", "render", "app_logger", "setup_logger", "get_logger",
+    "Session", "SessionManager", "redirect", "jsonify", "request", "session"
+]

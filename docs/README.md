@@ -8,6 +8,7 @@ ProAPI is a lightweight, beginner-friendly yet powerful Python web framework des
 - [Routing](routing.md) - URL routing and path parameters
 - [Request and Response](request-response.md) - Working with HTTP requests and responses
 - [Templates](templates.md) - Template rendering with Jinja2
+- [Sessions](sessions.md) - Session management
 - [Middleware](middleware.md) - Using and creating middleware
 - [API Documentation](api-docs.md) - Automatic API documentation
 - [CLI](cli.md) - Command-line interface
@@ -119,6 +120,27 @@ def index(request):
     return render("index.html",
                  title="Home",
                  message="Welcome to ProAPI!")
+```
+
+### Sessions
+
+ProAPI supports session management for storing user-specific data across requests:
+
+```python
+app = ProAPI(
+    enable_sessions=True,
+    session_secret_key="your-secret-key-here"
+)
+
+@app.get("/")
+def index(request):
+    # Get visit count from session
+    visit_count = request.session.get("visit_count", 0)
+
+    # Increment and store in session
+    request.session["visit_count"] = visit_count + 1
+
+    return {"visit_count": visit_count + 1}
 ```
 
 ### Middleware
@@ -346,6 +368,14 @@ ProAPI(
     docs_title="API Documentation",
     enable_forwarding=False,
     forwarding_type="ngrok",
+    enable_sessions=False,
+    session_secret_key=None,
+    session_cookie_name="session",
+    session_max_age=3600,  # 1 hour
+    session_secure=None,  # Based on environment
+    session_http_only=True,
+    session_same_site="Lax",
+    session_backend="memory",
     json_encoder=None
 )
 ```

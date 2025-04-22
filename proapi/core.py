@@ -46,6 +46,16 @@ class ProAPI:
                  enable_forwarding: bool = False,
                  forwarding_type: str = "ngrok",
                  json_encoder: Optional[Type[json.JSONEncoder]] = None,
+                 # Session options
+                 enable_sessions: bool = False,
+                 session_secret_key: Optional[str] = None,
+                 session_cookie_name: str = "session",
+                 session_max_age: int = 3600,  # 1 hour
+                 session_secure: Optional[bool] = None,  # Default based on env
+                 session_http_only: bool = True,
+                 session_same_site: str = "Lax",
+                 session_backend: str = "memory",  # 'memory' or 'file'
+                 session_backend_options: Optional[Dict[str, Any]] = None,
                  # Logging options
                  log_level: Optional[str] = None,  # Default will be based on env
                  log_format: Optional[str] = None,
@@ -73,6 +83,15 @@ class ProAPI:
             enable_forwarding: Enable port forwarding
             forwarding_type: Type of port forwarding
             json_encoder: Custom JSON encoder
+            enable_sessions: Enable session support
+            session_secret_key: Secret key for signing session cookies (required if sessions enabled)
+            session_cookie_name: Name of the session cookie
+            session_max_age: Maximum age of the session in seconds
+            session_secure: Whether the session cookie is secure (default: True in production, False otherwise)
+            session_http_only: Whether the session cookie is HTTP-only
+            session_same_site: SameSite cookie attribute ('Strict', 'Lax', or 'None')
+            session_backend: Session storage backend ('memory' or 'file')
+            session_backend_options: Additional options for the session backend
             log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
             log_format: Custom log format for Loguru
             log_file: Path to log file (None for stderr only)
@@ -98,6 +117,30 @@ class ProAPI:
         self.enable_forwarding = enable_forwarding
         self.forwarding_type = forwarding_type
         self.json_encoder = json_encoder
+
+        # Session configuration
+        self.enable_sessions = enable_sessions
+        self.session_cookie_name = session_cookie_name
+        self.session_max_age = session_max_age
+        self.session_http_only = session_http_only
+        self.session_same_site = session_same_site
+        self.session_backend = session_backend
+        self.session_backend_options = session_backend_options or {}
+
+        # Set session_secure based on environment if not specified
+        if session_secure is None:
+            self.session_secure = (self.env == "production")
+        else:
+            self.session_secure = session_secure
+
+        # Generate a random secret key if not provided
+        if enable_sessions and not session_secret_key:
+            import secrets
+            self.session_secret_key = secrets.token_hex(32)
+            app_logger.warning("No session secret key provided. Using a randomly generated key.")
+            app_logger.warning("This key will change on restart, invalidating all sessions.")
+        else:
+            self.session_secret_key = session_secret_key
 
         # Production configuration
         self.workers = workers
@@ -163,6 +206,12 @@ class ProAPI:
         # Setup routes
         self.routes: List[Route] = []
 
+        # Setup WebSocket routes
+        self.websocket_routes = []
+
+        # Setup WebSocket middleware
+        self.websocket_middleware = []
+
         # Setup middleware
         self.middleware: List[Callable] = []
 
@@ -184,6 +233,10 @@ class ProAPI:
 
         # Always add default documentation at /.docs
         self._add_default_docs_middleware()
+
+        # Add session middleware if enabled
+        if enable_sessions:
+            self._add_session_middleware()
 
         # Server instance
         self._server = None
@@ -207,6 +260,28 @@ class ProAPI:
     def patch(self, path: str, **kwargs):
         """Decorator for PATCH routes"""
         return self._route_decorator("PATCH", path, **kwargs)
+
+    def websocket(self, path: str, **kwargs):
+        """Decorator for WebSocket routes"""
+        from .websocket import WebSocketRoute
+
+        def decorator(handler):
+            # Get route-specific middleware
+            route_middlewares = kwargs.pop('middlewares', [])
+
+            # Combine with global middleware
+            all_middlewares = self.websocket_middleware + route_middlewares
+
+            # Create WebSocket route with middleware
+            route = WebSocketRoute(path, handler, middlewares=all_middlewares, **kwargs)
+            self.websocket_routes.append(route)
+            return handler
+        return decorator
+
+    def use_websocket(self, middleware):
+        """Add middleware to WebSocket routes"""
+        self.websocket_middleware.append(middleware)
+        return middleware
 
     def _route_decorator(self, method: str, path: str, **kwargs):
         """Internal route decorator factory"""
@@ -274,11 +349,36 @@ class ProAPI:
         default_docs_middleware = DocsMiddleware(self, "/.docs", "API Documentation")
         self.use(default_docs_middleware)
 
+    def _add_session_middleware(self):
+        """Add session middleware"""
+        from .session import SessionManager, session_middleware
+
+        # Create session manager
+        session_manager = SessionManager(
+            secret_key=self.session_secret_key,
+            cookie_name=self.session_cookie_name,
+            max_age=self.session_max_age,
+            secure=self.session_secure,
+            http_only=self.session_http_only,
+            same_site=self.session_same_site,
+            backend=self.session_backend,
+            backend_options=self.session_backend_options
+        )
+
+        # Create and add session middleware
+        self.use(session_middleware(session_manager))
+
+        # Log session configuration
+        app_logger.info(f"Session support enabled (backend: {self.session_backend})")
+        if self.env == "production" and not self.session_secure:
+            app_logger.warning("Session cookies are not secure in production environment")
+
     def run(self, host: str = None, port: int = None,
             server_type: str = None, workers: int = None,
             forward: bool = None, forward_type: str = None,
             forward_kwargs: Dict[str, Any] = None,
-            use_reloader: bool = None, **kwargs):
+            use_reloader: bool = None, debug: bool = None,
+            fast: bool = False, **kwargs):
         """
         Run the application server.
 
@@ -291,6 +391,8 @@ class ProAPI:
             forward_type: Type of port forwarding (overrides forwarding_type)
             forward_kwargs: Additional forwarding options
             use_reloader: Enable auto-reloading (overrides the instance setting)
+            debug: Enable debug mode (overrides the instance setting)
+            fast: Enable fast mode with optimized request handling (default: False)
             **kwargs: Additional server options
         """
         from .server import create_server
@@ -314,6 +416,26 @@ class ProAPI:
         # Use instance workers setting if not specified
         if workers is None:
             workers = self.workers
+
+        # Override debug mode if specified
+        if debug is not None:
+            self.debug = debug
+
+        # Enable fast mode if specified
+        if fast:
+            # Set fast mode flag
+            self._fast_mode = True
+            app_logger.info(f"Running in fast mode with optimized performance")
+            print(f"Running in fast mode with optimized performance")
+
+            # Reset cache statistics
+            from .optimized import reset_cache_stats
+            reset_cache_stats()
+
+            # Use the new runner for faster performance
+            from .runner import run_app
+            run_app(app_instance=self, host=host, port=port, reload=use_reloader, workers=workers, debug=debug)
+            return
 
         # In production, ensure we have at least 2 workers
         if self.env == "production" and workers < 2:
@@ -429,29 +551,44 @@ class ProAPI:
             Response object
         """
         from .server import Response
+        from .request_proxy import set_current_request, clear_current_request
 
         # Store current request for use in documentation
         self._current_request = request
 
-        # Apply middleware (pre-request)
-        for middleware in self.middleware:
-            request = middleware(request)
-            if isinstance(request, Response):
-                return request
-
-        # Find matching route
-        route = self._find_route(request.method, request.path)
-
-        if not route:
-            return Response(
-                status=404,
-                body=json.dumps({"error": "Not Found"}),
-                content_type="application/json"
-            )
+        # Set the current request in the request proxy
+        set_current_request(request)
 
         try:
-            # Extract path parameters
-            path_params = route.extract_params(request.path)
+            # Apply middleware (pre-request)
+            for middleware in self.middleware:
+                request = middleware(request)
+                if isinstance(request, Response):
+                    return request
+
+            # Find matching route (use optimized version if fast mode is enabled)
+            if getattr(self, '_fast_mode', False):
+                from .optimized import find_route_optimized, response_pool
+                route, path_params = find_route_optimized(self.routes, request.method, request.path)
+
+                if not route:
+                    return response_pool.get(
+                        status=404,
+                        body=json.dumps({"error": "Not Found"}),
+                        content_type="application/json"
+                    )
+            else:
+                route = self._find_route(request.method, request.path)
+
+                if not route:
+                    return Response(
+                        status=404,
+                        body=json.dumps({"error": "Not Found"}),
+                        content_type="application/json"
+                    )
+
+                # Extract path parameters (will be done later in the optimized version)
+                path_params = route.extract_params(request.path)
 
             # Prepare handler arguments
             kwargs = {**path_params}
@@ -471,11 +608,25 @@ class ProAPI:
                 print(f"Kwargs: {kwargs}")
 
             # Call the handler
-            if route.is_async:
-                import asyncio
-                result = asyncio.run(route.handler(**kwargs))
-            else:
-                result = route.handler(**kwargs)
+            try:
+                if route.is_async:
+                    import asyncio
+                    result = asyncio.run(route.handler(**kwargs))
+                else:
+                    result = route.handler(**kwargs)
+            except TypeError as e:
+                # Check if the error is due to unexpected 'request' argument
+                if "got an unexpected keyword argument 'request'" in str(e):
+                    # Remove the request parameter and try again
+                    kwargs.pop('request', None)
+                    if route.is_async:
+                        import asyncio
+                        result = asyncio.run(route.handler(**kwargs))
+                    else:
+                        result = route.handler(**kwargs)
+                else:
+                    # Re-raise the error if it's not related to the request parameter
+                    raise
 
             # Process the result
             return self._process_result(result)
@@ -528,6 +679,9 @@ class ProAPI:
                     body=json.dumps({"error": "Internal Server Error"}),
                     content_type="application/json"
                 )
+        finally:
+            # Clear the current request from the request proxy
+            clear_current_request()
 
     def _find_route(self, method: str, path: str):
         """Find a matching route for the given method and path"""
@@ -540,26 +694,70 @@ class ProAPI:
         """Process the result from a route handler"""
         from .server import Response
 
-        # If result is already a Response, return it
-        if isinstance(result, Response):
-            return result
+        # Use optimized processing if fast mode is enabled
+        if getattr(self, '_fast_mode', False):
+            from .optimized import process_json_optimized, response_pool, compress_response
 
-        # If result is a dict or list, convert to JSON
-        if isinstance(result, (dict, list)):
+            # If result is already a Response, return it
+            if isinstance(result, Response):
+                # Apply compression if needed
+                if result.body and result.headers.get('Content-Type', '').startswith('text/') or \
+                   result.headers.get('Content-Type', '').startswith('application/json'):
+                    body_bytes, extra_headers = compress_response(result.body)
+                    result.body = body_bytes
+                    result.headers.update(extra_headers)
+                return result
+
+            # If result is a tuple (data, status_code), handle it
+            if isinstance(result, tuple) and len(result) == 2 and isinstance(result[1], int):
+                data, status_code = result
+                if isinstance(data, (dict, list)):
+                    body, content_type = process_json_optimized(data)
+                    return response_pool.get(body=body, status=status_code, content_type=content_type)
+
+            # If result is a dict or list, convert to JSON
+            if isinstance(result, (dict, list)):
+                body, content_type = process_json_optimized(result)
+                return response_pool.get(body=body, content_type=content_type)
+
+            # If result is a string, assume it's HTML
+            if isinstance(result, str):
+                return response_pool.get(body=result, content_type="text/html")
+
+            # For other types, convert to string
+            return response_pool.get(body=str(result), content_type="text/plain")
+        else:
+            # Standard processing
+            # If result is already a Response, return it
+            if isinstance(result, Response):
+                return result
+
+            # If result is a tuple (data, status_code), handle it
+            if isinstance(result, tuple) and len(result) == 2 and isinstance(result[1], int):
+                data, status_code = result
+                if isinstance(data, (dict, list)):
+                    return Response(
+                        body=json.dumps(data, cls=self.json_encoder),
+                        status=status_code,
+                        content_type="application/json"
+                    )
+
+            # If result is a dict or list, convert to JSON
+            if isinstance(result, (dict, list)):
+                return Response(
+                    body=json.dumps(result, cls=self.json_encoder),
+                    content_type="application/json"
+                )
+
+            # If result is a string, assume it's HTML
+            if isinstance(result, str):
+                return Response(
+                    body=result,
+                    content_type="text/html"
+                )
+
+            # For other types, convert to string
             return Response(
-                body=json.dumps(result, cls=self.json_encoder),
-                content_type="application/json"
+                body=str(result),
+                content_type="text/plain"
             )
-
-        # If result is a string, assume it's HTML
-        if isinstance(result, str):
-            return Response(
-                body=result,
-                content_type="text/html"
-            )
-
-        # For other types, convert to string
-        return Response(
-            body=str(result),
-            content_type="text/plain"
-        )

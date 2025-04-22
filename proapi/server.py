@@ -12,7 +12,7 @@ import threading
 import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
-from typing import Any, Dict, List, Optional, Union, Callable
+from typing import Any, Dict, List, Optional, Union, Callable, Tuple
 
 from .logging import app_logger
 
@@ -47,6 +47,7 @@ class Request:
         self.remote_addr = remote_addr
         self._json = None
         self._form = None
+        self._cookies = None
 
     @property
     def content_type(self) -> str:
@@ -88,6 +89,24 @@ class Request:
         """Get a header value"""
         return self.headers.get(name, default)
 
+    @property
+    def cookies(self) -> Dict[str, str]:
+        """Parse cookies from the Cookie header"""
+        if self._cookies is None:
+            self._cookies = {}
+            cookie_header = self.headers.get('Cookie', '')
+            if cookie_header:
+                for cookie in cookie_header.split(';'):
+                    cookie = cookie.strip()
+                    if '=' in cookie:
+                        name, value = cookie.split('=', 1)
+                        self._cookies[name.strip()] = value.strip()
+        return self._cookies
+
+    def get_cookie(self, name: str, default: Any = None) -> Any:
+        """Get a cookie value"""
+        return self.cookies.get(name, default)
+
 class Response:
     """
     Represents an HTTP response.
@@ -123,7 +142,8 @@ class Response:
                    path: str = "/",
                    domain: Optional[str] = None,
                    secure: bool = False,
-                   http_only: bool = False):
+                   http_only: bool = False,
+                   same_site: Optional[str] = None):
         """
         Set a cookie in the response.
 
@@ -136,6 +156,7 @@ class Response:
             domain: Cookie domain
             secure: Whether the cookie is secure
             http_only: Whether the cookie is HTTP-only
+            same_site: SameSite cookie attribute ('Strict', 'Lax', or 'None')
         """
         cookie = f"{name}={value}"
 
@@ -151,8 +172,37 @@ class Response:
             cookie += "; Secure"
         if http_only:
             cookie += "; HttpOnly"
+        if same_site:
+            cookie += f"; SameSite={same_site}"
 
-        self.headers['Set-Cookie'] = cookie
+        # Support multiple cookies
+        if 'Set-Cookie' in self.headers:
+            if isinstance(self.headers['Set-Cookie'], list):
+                self.headers['Set-Cookie'].append(cookie)
+            else:
+                self.headers['Set-Cookie'] = [self.headers['Set-Cookie'], cookie]
+        else:
+            self.headers['Set-Cookie'] = cookie
+
+    def delete_cookie(self,
+                      name: str,
+                      path: str = "/",
+                      domain: Optional[str] = None):
+        """
+        Delete a cookie by setting its expiration in the past.
+
+        Args:
+            name: Cookie name
+            path: Cookie path
+            domain: Cookie domain
+        """
+        self.set_cookie(
+            name=name,
+            value="",
+            max_age=0,
+            path=path,
+            domain=domain
+        )
 
 class ProAPIRequestHandler(BaseHTTPRequestHandler):
     """
@@ -286,7 +336,12 @@ class ProAPIRequestHandler(BaseHTTPRequestHandler):
 
         # Send headers
         for name, value in response.headers.items():
-            self.send_header(name, value)
+            if isinstance(value, list):
+                # Handle multiple headers with the same name (e.g., Set-Cookie)
+                for v in value:
+                    self.send_header(name, v)
+            else:
+                self.send_header(name, value)
         self.end_headers()
 
         # Send body
@@ -478,7 +533,17 @@ def create_server(app, host, port, server_type=None, workers=1, use_reloader=Fal
 
         # Create ASGI app adapter
         from .asgi import create_asgi_app
-        asgi_app = create_asgi_app(app)
+
+        # Make the app callable for uvicorn
+        class ASGIApp:
+            def __init__(self, app):
+                self.app = app
+                self.asgi_app = create_asgi_app(app)
+
+            async def __call__(self, scope, receive, send):
+                await self.asgi_app(scope, receive, send)
+
+        asgi_app = ASGIApp(app)
 
         # Return uvicorn server
         class UvicornServer:
@@ -503,14 +568,38 @@ def create_server(app, host, port, server_type=None, workers=1, use_reloader=Fal
                 if self.use_reloader:
                     # Get the main module name
                     import __main__
-                    main_module = __main__.__file__
+                    # Handle case where __main__ might not have __file__ attribute
+                    main_module = getattr(__main__, '__file__', None)
+
+                    # If main_module is None, try to get it from sys.modules['__main__']
+                    if main_module is None:
+                        import sys
+                        if '__main__' in sys.modules:
+                            main = sys.modules['__main__']
+                            main_module = getattr(main, '__file__', None)
+
+                    # If still None, try to get it from the current file
+                    if main_module is None:
+                        import inspect
+                        current_frame = inspect.currentframe()
+                        main_module = current_frame.f_back.f_globals.get('__file__')
 
                     if main_module:
                         # Get the relative path to make it an import string
                         import os
-                        app_dir = os.path.dirname(os.path.abspath(main_module))
-                        module_path = os.path.relpath(main_module, os.path.dirname(app_dir))
-                        module_name = module_path.replace(os.path.sep, '.').replace('.py', '')
+                        import sys
+
+                        # Get absolute path of the main module
+                        main_module_abs = os.path.abspath(main_module)
+                        app_dir = os.path.dirname(main_module_abs)
+
+                        # Add the parent directory to sys.path to ensure imports work
+                        parent_dir = os.path.dirname(app_dir)
+                        if parent_dir not in sys.path:
+                            sys.path.insert(0, parent_dir)
+
+                        # Get just the filename without extension for the module name
+                        module_name = os.path.splitext(os.path.basename(main_module))[0]
 
                         # Find the app variable name
                         app_var = None
@@ -520,8 +609,14 @@ def create_server(app, host, port, server_type=None, workers=1, use_reloader=Fal
                                 break
 
                         if app_var:
+                            # Use a direct import string that doesn't rely on Python package structure
                             import_string = f"{module_name}:{app_var}"
                             app_logger.info(f"Using import string for reloading: {import_string}")
+
+                            # Add the current directory to sys.path to ensure imports work
+                            import sys
+                            if app_dir not in sys.path:
+                                sys.path.insert(0, app_dir)
 
                             # Run with the import string
                             # Make a copy of options to avoid modifying the original

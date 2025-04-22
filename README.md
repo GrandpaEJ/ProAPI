@@ -7,6 +7,7 @@ A lightweight, beginner-friendly yet powerful Python web framework.
 - Decorator-based routing (`@app.get()`, `@app.post()`, etc.)
 - Simple template rendering with Jinja2
 - Easy server startup with `app.run()`
+- Session management for user state
 - Optional async support
 - Optional Cython-based compilation for speed boost
 - Minimal dependencies
@@ -143,6 +144,27 @@ async def async_example():
     # Perform async operations
     await some_async_function()
     return {"result": "Async operation completed"}
+```
+
+## Session Management
+
+```python
+from proapi import ProAPI
+
+app = ProAPI(
+    enable_sessions=True,
+    session_secret_key="your-secret-key-here"
+)
+
+@app.get("/")
+def index(request):
+    # Get visit count from session
+    visit_count = request.session.get("visit_count", 0)
+
+    # Increment and store in session
+    request.session["visit_count"] = visit_count + 1
+
+    return {"visit_count": visit_count + 1}
 ```
 
 ## Middleware
