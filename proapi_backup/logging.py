@@ -11,7 +11,7 @@ from typing import Dict, Any, Optional, Union, List
 from loguru import logger
 
 # Default log format
-DEFAULT_FORMAT = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+DEFAULT_FORMAT = "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan> - <level>{message}</level>"
 
 # Default log level
 DEFAULT_LEVEL = "INFO"

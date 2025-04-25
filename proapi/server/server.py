@@ -14,7 +14,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 from typing import Any, Dict, List, Optional, Union, Callable, Tuple
 
-from .logging import app_logger
+from proapi.core.logging import app_logger
 
 class Request:
     """
@@ -530,7 +530,7 @@ def create_server(app, host, port, server_type=None, workers=1, use_reloader=Fal
         # Check if auto_restart is enabled
         if kwargs.get('auto_restart', False):
             try:
-                from .worker_manager import WorkerManager
+                from proapi.utils.worker_manager import WorkerManager
 
                 # Create command for worker processes
                 import sys
@@ -568,19 +568,28 @@ def create_server(app, host, port, server_type=None, workers=1, use_reloader=Fal
     elif server_type == "uvicorn":
         import uvicorn
 
-        # Create ASGI app adapter
-        from .asgi import create_asgi_app
+        # Try to use the fixed ASGI adapter first
+        try:
+            from .asgi_adapter_fix import ASGIAdapter, set_app
+            app_logger.info("Using fixed ASGI adapter")
+            asgi_app = ASGIAdapter(app)
+            # Set the global app variable for uvicorn to import
+            set_app(app)
+        except ImportError:
+            # Fall back to the original ASGI adapter
+            app_logger.warning("Fixed ASGI adapter not available, using default adapter")
+            from .asgi import create_asgi_app
 
-        # Make the app callable for uvicorn
-        class ASGIApp:
-            def __init__(self, app):
-                self.app = app
-                self.asgi_app = create_asgi_app(app)
+            # Make the app callable for uvicorn
+            class ASGIApp:
+                def __init__(self, app):
+                    self.app = app
+                    self.asgi_app = create_asgi_app(app)
 
-            async def __call__(self, scope, receive, send):
-                await self.asgi_app(scope, receive, send)
+                async def __call__(self, scope, receive, send):
+                    await self.asgi_app(scope, receive, send)
 
-        asgi_app = ASGIApp(app)
+            asgi_app = ASGIApp(app)
 
         # Return uvicorn server
         class UvicornServer:
@@ -646,14 +655,41 @@ def create_server(app, host, port, server_type=None, workers=1, use_reloader=Fal
                                 break
 
                         if app_var:
+                            # Create a temporary module with the app
+                            import tempfile
+                            import importlib.util
+
+                            # Create a temporary file with the app
+                            temp_dir = tempfile.mkdtemp()
+                            temp_file = os.path.join(temp_dir, "app.py")
+
+                            # Write the app to the temporary file
+                            with open(temp_file, "w") as f:
+                                # Use raw string to avoid escape sequence issues
+                                app_dir_escaped = app_dir.replace("\\", "\\\\")
+                                f.write(f"""
+# Import the app initialization function
+from proapi.server.asgi_app import init_app, __call__
+
+# Add the app directory to sys.path
+import sys
+sys.path.insert(0, "{app_dir_escaped}")
+
+# Initialize the app
+init_app("{module_name}", "{app_var}")
+""")
+
                             # Use a direct import string that doesn't rely on Python package structure
-                            import_string = f"{module_name}:{app_var}"
+                            import_string = f"{temp_dir.replace(os.sep, '.')}.app:__call__"
                             app_logger.info(f"Using import string for reloading: {import_string}")
 
                             # Add the current directory to sys.path to ensure imports work
-                            import sys
                             if app_dir not in sys.path:
                                 sys.path.insert(0, app_dir)
+
+                            # Add the temp directory to sys.path
+                            if temp_dir not in sys.path:
+                                sys.path.insert(0, temp_dir)
 
                             # Run with the import string
                             # Make a copy of options to avoid modifying the original
@@ -663,11 +699,12 @@ def create_server(app, host, port, server_type=None, workers=1, use_reloader=Fal
                                 del options['reload']
 
                             uvicorn.run(
-                                import_string,
+                                "app:__call__",
                                 host=self.host,
                                 port=self.port,
                                 reload=True,
                                 workers=workers,
+                                reload_dirs=[app_dir],
                                 **options
                             )
                             return

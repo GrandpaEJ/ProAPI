@@ -5,6 +5,32 @@ All notable changes to ProAPI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-04-25
+
+### Added
+- Added HTTP client functionality with httpx
+- Added form data parsing with python-multipart
+- Added support for Hypercorn as an alternative ASGI server
+- Added Sphinx documentation support
+- Added mypy for type checking in development
+- Added HTTP Servers classifier
+- Added Flask-like authentication system
+- Added clean, organized logging system
+
+### Changed
+- Updated minimum Python version to 3.8
+- Updated all dependencies to latest versions
+- Improved logging system with cleaner output
+- Enhanced login system with Flask-like protection
+- Changed development status from Alpha to Beta
+- Reorganized codebase for better maintainability
+
+### Fixed
+- Fixed ASGI compatibility issues
+- Fixed event loop blocking issues
+- Fixed WebSocket auto-handling
+- Fixed duplicate logging issues
+
 ## [0.3.12] - 2025-04-22
 
 ### Added

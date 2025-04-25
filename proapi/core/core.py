@@ -10,9 +10,9 @@ import time
 from typing import Any, Callable, Dict, List, Optional, TypeVar, Type, Union
 import traceback
 
-from .routing import Route
-from .templating import render, setup_jinja
-from .logging import setup_logger, app_logger
+from proapi.routing.routing import Route
+from proapi.templates.templating import render, setup_jinja
+from proapi.core.logging import setup_logger, app_logger
 
 T = TypeVar('T')
 
@@ -27,7 +27,7 @@ class ProAPI:
     - Easy to use with minimal boilerplate
 
     Example:
-        from proapi import ProAPI
+        from proapi.core import ProAPI
 
         app = ProAPI()
 
@@ -252,7 +252,7 @@ class ProAPI:
 
     def websocket(self, path: str, **kwargs):
         """Decorator for WebSocket routes"""
-        from .websocket import WebSocketRoute
+        from proapi.websocket.websocket import WebSocketRoute
 
         def decorator(handler):
             # Get route-specific middleware
@@ -294,7 +294,7 @@ class ProAPI:
         @self.use
         def static_middleware(request):
             """Serve static files"""
-            from .server import Response
+            from proapi.server.server import Response
 
             # Check if the request is for a static file
             if request.path.startswith(self.static_url):
@@ -324,7 +324,7 @@ class ProAPI:
 
     def _add_docs_middleware(self):
         """Add documentation middleware"""
-        from .docs import DocsMiddleware
+        from proapi.core.docs import DocsMiddleware
 
         # Create and add the middleware
         docs_middleware = DocsMiddleware(self, self.docs_url, self.docs_title)
@@ -332,7 +332,7 @@ class ProAPI:
 
     def _add_default_docs_middleware(self):
         """Add default documentation middleware at /.docs"""
-        from .docs import DocsMiddleware
+        from proapi.core.docs import DocsMiddleware
 
         # Create and add the middleware with default settings
         default_docs_middleware = DocsMiddleware(self, "/.docs", "API Documentation")
@@ -340,7 +340,7 @@ class ProAPI:
 
     def _add_session_middleware(self):
         """Add session middleware"""
-        from .session import SessionManager, session_middleware
+        from proapi.session.session import SessionManager, session_middleware
 
         # Create session manager
         session_manager = SessionManager(
@@ -379,7 +379,7 @@ class ProAPI:
             fast: Enable fast mode with optimized request handling
             **kwargs: Additional server options
         """
-        from .server import create_server
+        from proapi.server.server import create_server
 
         # Set defaults based on environment
         if host is None:
@@ -407,7 +407,7 @@ class ProAPI:
 
             # Reset cache statistics if optimized module is available
             try:
-                from .optimized import reset_cache_stats
+                from proapi.performance.optimized import reset_cache_stats
                 reset_cache_stats()
             except ImportError:
                 app_logger.warning("Optimized module not available, falling back to standard mode")
@@ -428,16 +428,22 @@ class ProAPI:
             if self.trusted_hosts:
                 kwargs.setdefault("trusted_hosts", self.trusted_hosts)
 
-        # Start the server
-        app_logger.info(f"ProAPI server starting at http://{host}:{port}")
+        # Start the server - print important information first
+        app_logger.info("=== ProAPI Server ===")
+        app_logger.info(f"Server starting at http://{host}:{port}")
         app_logger.info(f"Environment: {self.env.upper()}")
-        app_logger.info(f"Debug mode: {'ON' if self.debug else 'OFF'}")
-        app_logger.info(f"Fast mode: {'ON' if self._fast_mode else 'OFF'}")
-        app_logger.info(f"Workers: {workers}")
 
         # Print to console as well
-        print(f"ProAPI server starting at http://{host}:{port}")
+        print("\n=== ProAPI Server ===")
+        print(f"Server starting at http://{host}:{port}")
         print(f"Environment: {self.env.upper()}")
+
+        # Print less important information
+        app_logger.debug(f"Debug mode: {'ON' if self.debug else 'OFF'}")
+        app_logger.debug(f"Fast mode: {'ON' if self._fast_mode else 'OFF'}")
+        app_logger.debug(f"Workers: {workers}")
+
+        # Print less important information to console
         print(f"Debug mode: {'ON' if self.debug else 'OFF'}")
         print(f"Fast mode: {'ON' if self._fast_mode else 'OFF'}")
         print(f"Workers: {workers}")
@@ -445,7 +451,7 @@ class ProAPI:
         # Start port forwarding if enabled
         if forward:
             try:
-                from .forwarding import create_forwarder, get_local_ip
+                from proapi.utils.forwarding import create_forwarder, get_local_ip
 
                 # Use the local IP if host is 0.0.0.0
                 local_host = get_local_ip() if host == "0.0.0.0" else host
@@ -478,7 +484,7 @@ class ProAPI:
         # Initialize performance and reliability features
         if self.protect_event_loop:
             try:
-                from .loop_protection import start_loop_monitoring
+                from proapi.performance.loop_protection import start_loop_monitoring
                 start_loop_monitoring()
                 app_logger.info("Event loop protection enabled")
             except ImportError:
@@ -486,7 +492,7 @@ class ProAPI:
 
         if self.enable_overload_protection:
             try:
-                from .overload_handler import configure_overload_handler
+                from proapi.utils.overload_handler import configure_overload_handler
                 configure_overload_handler(
                     max_size=self.request_queue_size,
                     max_concurrent=self.max_concurrent_requests
@@ -498,7 +504,7 @@ class ProAPI:
         # Configure blocking detection if enabled
         if self.auto_offload_blocking:
             try:
-                from .blocking_handler import configure_blocking_detection
+                from proapi.performance.blocking_handler import configure_blocking_detection
                 configure_blocking_detection(auto_offload=True)
                 app_logger.info("Automatic blocking operation detection and offloading enabled")
             except ImportError:
@@ -544,7 +550,7 @@ class ProAPI:
             host: Host to forward from
             forwarding_type: Type of port forwarding
         """
-        from .forwarding import create_forwarder, get_local_ip
+        from proapi.utils.forwarding import create_forwarder, get_local_ip
 
         # Use the local IP if host is 0.0.0.0
         local_host = get_local_ip() if host == "0.0.0.0" else host
@@ -585,8 +591,8 @@ class ProAPI:
         Returns:
             Response object
         """
-        from .server import Response
-        from .request_proxy import set_current_request, clear_current_request
+        from proapi.server.server import Response
+        from proapi.routing.request_proxy import set_current_request, clear_current_request
 
         # Store current request for use in documentation
         self._current_request = request
@@ -603,7 +609,7 @@ class ProAPI:
 
             # Find matching route (use optimized version if fast mode is enabled)
             if getattr(self, '_fast_mode', False):
-                from .optimized import find_route_optimized, response_pool
+                from proapi.performance.optimized import find_route_optimized, response_pool
                 route, path_params = find_route_optimized(self.routes, request.method, request.path)
 
                 if not route:
@@ -727,11 +733,11 @@ class ProAPI:
 
     def _process_result(self, result):
         """Process the result from a route handler"""
-        from .server import Response
+        from proapi.server.server import Response
 
         # Use optimized processing if fast mode is enabled
         if getattr(self, '_fast_mode', False):
-            from .optimized import process_json_optimized, response_pool, compress_response
+            from proapi.performance.optimized import process_json_optimized, response_pool, compress_response
 
             # If result is already a Response, return it
             if isinstance(result, Response):

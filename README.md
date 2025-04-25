@@ -2,7 +2,9 @@
 
 A lightweight, beginner-friendly yet powerful Python web framework - simpler than Flask, faster than FastAPI.
 
-## Details 
+**Version 0.4.0** - Now with enhanced authentication, improved logging, and better performance!
+
+## Details
 [💝Read The Full Docs](docs/README.md)
 
 ## Features
@@ -14,6 +16,8 @@ A lightweight, beginner-friendly yet powerful Python web framework - simpler tha
 - Simple template rendering with Jinja2
 - Easy server startup with `app.run()`
 - Session management for user state
+- Flask-like authentication system
+- Clean, organized logging system
 - Optional async support
 - Optional Cython-based compilation for speed boost
 - Minimal dependencies
@@ -24,6 +28,7 @@ A lightweight, beginner-friendly yet powerful Python web framework - simpler tha
 - Smart auto-reloader for development
 - Port forwarding with Cloudflare to expose apps to the internet
 - CLI commands
+- HTTP client functionality
 
 ### Advanced Reliability Features
 - **Built-in protection against event-loop blocking**
@@ -45,6 +50,9 @@ This will install ProAPI with all core dependencies including:
 - jinja2 (for templating)
 - watchdog (for file monitoring)
 - pydantic (for data validation)
+- httpx (for HTTP client functionality)
+- python-multipart (for form data parsing)
+- psutil (for worker monitoring and resource usage tracking)
 
 For development tools:
 
@@ -68,6 +76,12 @@ For Cython compilation support:
 
 ```bash
 pip install proapi[cython]
+```
+
+For documentation generation:
+
+```bash
+pip install proapi[docs]
 ```
 
 For all features:
@@ -184,6 +198,48 @@ def index(request):
     request.session["visit_count"] = visit_count + 1
 
     return {"visit_count": visit_count + 1}
+```
+
+## User Authentication
+
+```python
+from proapi import ProAPI, LoginManager, login_required, login_user, logout_user, current_user
+
+app = ProAPI(
+    enable_sessions=True,
+    session_secret_key="your-secret-key-here"
+)
+
+login_manager = LoginManager(app)
+login_manager.login_view = "/login"
+
+# User loader function
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
+
+@app.get("/profile")
+@login_required
+def profile(request):
+    return {"user": current_user.username}
+
+@app.post("/login")
+def login(request):
+    username = request.form.get("username")
+    password = request.form.get("password")
+
+    # Verify credentials
+    user = authenticate_user(username, password)
+    if user:
+        login_user(user)
+        return {"message": "Login successful"}
+    else:
+        return {"error": "Invalid credentials"}
+
+@app.get("/logout")
+def logout(request):
+    logout_user()
+    return {"message": "Logged out"}
 ```
 
 ## Middleware

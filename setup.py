@@ -46,38 +46,54 @@ setup(
     author_email="",
     url="https://github.com/GrandpaEJ/ProAPI",
     packages=find_packages(),
+    package_data={
+        "proapi": ["templates/*", "static/*"],
+        "proapi.templates": ["templates/*"],
+    },
     ext_modules=ext_modules,
     install_requires=[
-        "loguru>=0.7.0",
-        "uvicorn>=0.23.0",
-        "jinja2>=3.0.0",
+        "loguru>=0.7.2",
+        "uvicorn>=0.27.0",
+        "jinja2>=3.1.3",
         "watchdog>=3.0.0",
-        "pydantic>=2.0.0",
-        "psutil>=5.9.0"  # Required for worker monitoring and resource usage tracking
+        "pydantic>=2.6.0",
+        "psutil>=5.9.8",  # Required for worker monitoring and resource usage tracking
+        "httpx>=0.26.0",  # For HTTP client functionality
+        "python-multipart>=0.0.7"  # For form data parsing
     ],
     extras_require={
         "dev": [
-            "pytest>=7.0.0",
-            "pytest-cov>=4.0.0",
-            "black>=23.0.0",
-            "isort>=5.0.0",
-            "flake8>=6.0.0"
+            "pytest>=7.4.3",
+            "pytest-cov>=4.1.0",
+            "black>=23.12.0",
+            "isort>=5.13.0",
+            "flake8>=6.1.0",
+            "mypy>=1.7.0"
         ],
         "prod": [
-            "gunicorn>=21.0.0",
-            "python-dotenv>=1.0.0"
+            "gunicorn>=21.2.0",
+            "python-dotenv>=1.0.0",
+            "hypercorn>=0.15.0"  # Alternative ASGI server
         ],
         "cloudflare": [
             "cloudflared>=0.1.0"
         ],
         "cython": [
-            "cython>=0.29.0"
+            "cython>=3.0.6"
+        ],
+        "docs": [
+            "sphinx>=7.2.6",
+            "sphinx-rtd-theme>=1.3.0",
+            "sphinx-autodoc-typehints>=1.25.2"
         ],
         "full": [
-            "gunicorn>=21.0.0",
+            "gunicorn>=21.2.0",
             "python-dotenv>=1.0.0",
             "cloudflared>=0.1.0",
-            "cython>=0.29.0"
+            "cython>=3.0.6",
+            "hypercorn>=0.15.0",
+            "sphinx>=7.2.6",
+            "sphinx-rtd-theme>=1.3.0"
         ]
     },
     entry_points={
@@ -86,11 +102,10 @@ setup(
         ]
     },
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
@@ -99,9 +114,10 @@ setup(
         "Programming Language :: Python :: 3.13",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+        "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
         "Topic :: Software Development :: Libraries :: Application Frameworks"
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     include_package_data=True,
     zip_safe=False
 )

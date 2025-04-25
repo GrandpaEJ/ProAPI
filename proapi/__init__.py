@@ -1,28 +1,13 @@
 """
 ProAPI - A lightweight, beginner-friendly yet powerful Python web framework.
 
-Features:
-- Simpler than Flask/FastAPI with intuitive API design
-- Faster than FastAPI with optimized routing and request handling
-- Stable like Flask with robust error handling
-- Decorator-based routing (@app.get(), @app.post(), etc.)
-- Simple template rendering with Jinja2
-- Easy server startup with app.run()
-- Optional async support
-- Optional Cython-based compilation for speed boost
-- Minimal dependencies
-- Built-in JSON support
-- Middleware system
-- Session management
-- Automatic API documentation at /.docs
-- Structured logging with Loguru
-- CLI commands
-- Enhanced WebSocket support
+ProAPI is designed to be simpler than Flask, faster than FastAPI, and stable like Flask.
+It provides a clean, intuitive API for building web applications and APIs.
 
-Usage:
+Example:
     from proapi import ProAPI
 
-    app = ProAPI()
+    app = ProAPI(debug=True)
 
     @app.get("/")
     def index(request):
@@ -34,28 +19,37 @@ Usage:
 
 import sys
 
+# Version information
+__version__ = "0.4.0"
+
 # Check Python version
-if sys.version_info < (3, 7):
-    raise RuntimeError("ProAPI requires Python 3.7 or higher")
+if sys.version_info < (3, 8):
+    raise RuntimeError("ProAPI requires Python 3.8 or higher")
 
-__version__ = "0.3.12"
+# Import core components
+from proapi.core.core import ProAPI
+from proapi.templates.templating import render
+from proapi.auth.login import LoginManager, login_required, login_user, logout_user, current_user, UserMixin
+from proapi.core.logging import app_logger, setup_logger
 
-from .core import ProAPI
-from .routing import Route
-from .templating import render
-from .logging import app_logger, setup_logger, get_logger
-from .session import Session, SessionManager
+# Import other useful components
+from proapi.performance.scheduler import thread_task, process_task, auto_task
+from proapi.utils.forwarding import setup_cloudflare_tunnel
 
-# Import helpers for easier usage
-from .helpers import redirect, jsonify
-
-# Create a request proxy for global access
-from .request_proxy import request
-
-# Create a session proxy for global access
-from .session_proxy import session
-
+# Define what's available when using "from proapi import *"
 __all__ = [
-    "ProAPI", "Route", "render", "app_logger", "setup_logger", "get_logger",
-    "Session", "SessionManager", "redirect", "jsonify", "request", "session"
+    "ProAPI",
+    "render",
+    "LoginManager",
+    "login_required",
+    "login_user",
+    "logout_user",
+    "current_user",
+    "UserMixin",
+    "app_logger",
+    "setup_logger",
+    "thread_task",
+    "process_task",
+    "auto_task",
+    "setup_cloudflare_tunnel",
 ]
