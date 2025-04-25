@@ -5,6 +5,39 @@ All notable changes to ProAPI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2025-04-25
+
+### Changed
+- Updated WebSocket documentation with correct import paths
+- Improved WebSocket examples to use built-in room management
+- Enhanced WebSocket middleware documentation
+- Updated reliability documentation to match current implementation
+- Improved cross-referencing between documentation files
+
+### Fixed
+- Fixed import paths in WebSocket documentation
+- Fixed WebSocket middleware registration examples
+- Fixed reliability.md to accurately reflect available features
+- Corrected examples in advanced.md for WebSocket usage
+- Fixed documentation inconsistencies across multiple files
+
+## [0.4.2] - 2025-04-25
+
+### Added
+- Added comprehensive documentation on HTML response handling
+- Added examples for different HTML response methods
+- Added notes about path-specific behavior for certain routes
+
+### Changed
+- Updated authentication documentation with best practices
+- Improved examples for login and registration pages
+- Enhanced custom response documentation
+
+### Fixed
+- Fixed HTML response handling for specific routes (e.g., "/register")
+- Fixed documentation inconsistencies
+- Improved error handling for HTML responses
+
 ## [0.4.1] - 2025-04-25
 
 ### Added

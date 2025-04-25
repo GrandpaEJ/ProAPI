@@ -16,7 +16,7 @@ async def async_route():
     # Simulate async operation
     import asyncio
     await asyncio.sleep(0.1)
-    
+
     return {"message": "Async route"}
 ```
 
@@ -42,11 +42,11 @@ Use async libraries for improved performance:
 @app.get("/users/{user_id:int}")
 async def get_user(user_id):
     import aiohttp
-    
+
     async with aiohttp.ClientSession() as session:
         async with session.get(f"https://api.example.com/users/{user_id}") as response:
             data = await response.json()
-            
+
     return data
 ```
 
@@ -154,25 +154,25 @@ Create advanced middleware for complex use cases:
 def jwt_auth_middleware(secret_key, algorithm="HS256"):
     """
     JWT authentication middleware.
-    
+
     Args:
         secret_key: Secret key for JWT verification
         algorithm: JWT algorithm
-    
+
     Returns:
         Middleware function
     """
     import jwt
     from proapi.server import Response
-    
+
     def middleware(request):
         # Skip auth for public endpoints
         if request.path.startswith('/public'):
             return request
-        
+
         # Get authorization header
         auth_header = request.headers.get('Authorization', '')
-        
+
         # Check if it's a Bearer token
         if not auth_header.startswith('Bearer '):
             return Response(
@@ -180,17 +180,17 @@ def jwt_auth_middleware(secret_key, algorithm="HS256"):
                 body={"error": "Authorization header must start with 'Bearer'"},
                 content_type="application/json"
             )
-        
+
         # Extract token
         token = auth_header[7:]
-        
+
         try:
             # Verify and decode token
             payload = jwt.decode(token, secret_key, algorithms=[algorithm])
-            
+
             # Store user info on the request
             request.user = payload
-            
+
             return request
         except jwt.ExpiredSignatureError:
             return Response(
@@ -204,7 +204,7 @@ def jwt_auth_middleware(secret_key, algorithm="HS256"):
                 body={"error": "Invalid token"},
                 content_type="application/json"
             )
-    
+
     return middleware
 
 # Usage
@@ -223,11 +223,11 @@ original_process_result = app._process_result
 def custom_process_result(result):
     # Get the original response
     response = original_process_result(result)
-    
+
     # Add custom headers
     response.headers['X-Powered-By'] = 'ProAPI'
     response.headers['X-Version'] = '1.0.0'
-    
+
     return response
 
 # Replace the method
@@ -239,35 +239,45 @@ app._process_result = custom_process_result
 Add WebSocket support to your application:
 
 ```python
-import asyncio
 import json
-
-# Store connected clients
-clients = set()
 
 @app.websocket("/ws")
 async def websocket_handler(websocket):
-    # Add client to set
-    clients.add(websocket)
-    
+    # Accept the connection
+    await websocket.accept()
+
+    # Create a room for all clients
+    room_name = "global"
+    await websocket.join_room(room_name)
+
     try:
+        # Send welcome message
+        await websocket.send_json({
+            "type": "system",
+            "message": "Welcome to the chat!"
+        })
+
+        # Broadcast join message
+        await websocket.broadcast_json(room_name, {
+            "type": "system",
+            "message": "A new user has joined"
+        })
+
         while True:
             # Receive message
-            message = await websocket.receive_text()
-            
-            # Parse message
-            data = json.loads(message)
-            
-            # Broadcast message to all clients
-            for client in clients:
-                await client.send_text(json.dumps({
-                    "type": "message",
-                    "data": data
-                }))
+            data = await websocket.receive_json()
+
+            # Broadcast message to all clients in the room
+            await websocket.broadcast_json_to_all(room_name, {
+                "type": "message",
+                "data": data
+            })
     finally:
-        # Remove client from set
-        clients.remove(websocket)
+        # Leave the room
+        await websocket.leave_room(room_name)
 ```
+
+For more advanced WebSocket features, see the [WebSockets](websockets.md) and [WebSockets Advanced](websockets_advanced.md) documentation.
 
 ## Custom Error Handlers
 
@@ -286,7 +296,7 @@ def not_found_handler(request, exception):
 def server_error_handler(request, exception):
     # Log the error
     app_logger.error(f"Server error: {exception}")
-    
+
     return {
         "error": "Internal Server Error",
         "message": "An unexpected error occurred"
@@ -406,7 +416,7 @@ def require_auth(f):
     @functools.wraps(f)
     def wrapper(request, *args, **kwargs):
         from proapi.server import Response
-        
+
         # Check if user is authenticated
         if not hasattr(request, 'user'):
             return Response(
@@ -414,9 +424,9 @@ def require_auth(f):
                 body={"error": "Authentication required"},
                 content_type="application/json"
             )
-        
+
         return f(request, *args, **kwargs)
-    
+
     return wrapper
 
 # Usage

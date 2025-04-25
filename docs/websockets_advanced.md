@@ -14,7 +14,7 @@ app = ProAPI()
 @app.websocket("/ws")
 async def websocket_handler(websocket):
     await websocket.accept()
-    
+
     while True:
         message = await websocket.receive_text()
         await websocket.send_text(f"Echo: {message}")
@@ -63,10 +63,10 @@ ProAPI includes built-in room management for WebSocket connections:
 @app.websocket("/chat/{room}")
 async def chat_room(websocket, room):
     await websocket.accept()
-    
+
     # Join the room
     await websocket.join_room(room)
-    
+
     try:
         # Handle messages
         while True:
@@ -103,22 +103,22 @@ ProAPI makes it easy to broadcast messages to all connections in a room:
 async def chat_room(websocket, room):
     await websocket.accept()
     await websocket.join_room(room)
-    
+
     # Get username from query parameters
     username = websocket.query_params.get("username", "Anonymous")
     websocket.user_data["username"] = username
-    
+
     # Broadcast join message
     await websocket.broadcast_json(room, {
         "type": "system",
         "message": f"{username} has joined the room"
     })
-    
+
     try:
         while True:
             data = await websocket.receive_json()
             data["username"] = username
-            
+
             # Broadcast message to all users in the room
             await websocket.broadcast_json_to_all(room, data)
     finally:
@@ -140,16 +140,18 @@ Global middleware is applied to all WebSocket routes:
 
 ```python
 from proapi import ProAPI
-from proapi.websocket_middleware import LoggingMiddleware
+from proapi.websocket.websocket_middleware import LoggingMiddleware
 
 app = ProAPI()
 
-# Add global WebSocket middleware
-@app.use_websocket
+# Create custom logging middleware
 class CustomLoggingMiddleware(LoggingMiddleware):
     async def __call__(self, websocket, next_middleware):
         print(f"WebSocket connection to {websocket.path}")
         return await super().__call__(websocket, next_middleware)
+
+# Add global WebSocket middleware
+app.websocket_middlewares = [CustomLoggingMiddleware()]
 ```
 
 ### Route-Specific Middleware
@@ -157,7 +159,7 @@ class CustomLoggingMiddleware(LoggingMiddleware):
 You can also apply middleware to specific routes:
 
 ```python
-from proapi.websocket_middleware import AuthMiddleware
+from proapi.websocket.websocket_middleware import AuthMiddleware
 
 # Authentication function
 def authenticate(websocket):
@@ -173,14 +175,14 @@ auth_middleware = AuthMiddleware(authenticate)
 @app.websocket("/secure", middlewares=[auth_middleware])
 async def secure_websocket(websocket):
     await websocket.accept()
-    
+
     # Get the authenticated user
     user = websocket.user_data.get("user")
-    
+
     await websocket.send_json({
         "message": f"Welcome, {user['username']}!"
     })
-    
+
     # Handle messages...
 ```
 
@@ -191,7 +193,7 @@ ProAPI includes several built-in middleware classes:
 #### Authentication Middleware
 
 ```python
-from proapi.websocket_middleware import AuthMiddleware
+from proapi.websocket.websocket_middleware import AuthMiddleware
 
 # Create authentication middleware
 auth_middleware = AuthMiddleware(authenticate_function)
@@ -206,7 +208,7 @@ async def secure_websocket(websocket):
 #### Rate Limiting Middleware
 
 ```python
-from proapi.websocket_middleware import RateLimitMiddleware
+from proapi.websocket.websocket_middleware import RateLimitMiddleware
 
 # Create rate limiting middleware (5 messages per 10 seconds)
 rate_limit = RateLimitMiddleware(max_messages=5, window_seconds=10)
@@ -220,7 +222,7 @@ async def limited_websocket(websocket):
 #### Logging Middleware
 
 ```python
-from proapi.websocket_middleware import LoggingMiddleware
+from proapi.websocket.websocket_middleware import LoggingMiddleware
 
 # Create logging middleware
 logging_middleware = LoggingMiddleware(log_messages=True)
@@ -236,19 +238,19 @@ async def logged_websocket(websocket):
 You can create custom middleware by extending the `WebSocketMiddleware` class:
 
 ```python
-from proapi.websocket_middleware import WebSocketMiddleware
+from proapi.websocket.websocket_middleware import WebSocketMiddleware
 
 class CustomMiddleware(WebSocketMiddleware):
     async def __call__(self, websocket, next_middleware):
         # Do something before the handler
         print("Before handler")
-        
+
         # Call the next middleware or handler
         result = await next_middleware(websocket)
-        
+
         # Do something after the handler
         print("After handler")
-        
+
         return result
 ```
 
@@ -260,7 +262,7 @@ WebSocket connections can be closed unexpectedly. Use try/except blocks to handl
 @app.websocket("/ws")
 async def websocket_handler(websocket):
     await websocket.accept()
-    
+
     try:
         while True:
             message = await websocket.receive_text()
@@ -279,12 +281,12 @@ Here's a more advanced example that combines room management, broadcasting, and 
 
 ```python
 from proapi import ProAPI
-from proapi.websocket_middleware import AuthMiddleware, LoggingMiddleware
+from proapi.websocket.websocket_middleware import AuthMiddleware, LoggingMiddleware
 
 app = ProAPI()
 
 # Add global logging middleware
-app.use_websocket(LoggingMiddleware())
+app.websocket_middlewares = [LoggingMiddleware()]
 
 # Authentication function
 def authenticate(websocket):
@@ -300,22 +302,22 @@ auth_middleware = AuthMiddleware(authenticate)
 async def secure_chat(websocket, room):
     await websocket.accept()
     await websocket.join_room(room)
-    
+
     # Get the authenticated user
     user = websocket.user_data.get("user")
     username = user["username"]
-    
+
     # Broadcast join message
     await websocket.broadcast_json(room, {
         "type": "system",
         "message": f"{username} has joined the room"
     })
-    
+
     try:
         while True:
             data = await websocket.receive_json()
             data["username"] = username
-            
+
             # Broadcast message to all users in the room
             await websocket.broadcast_json_to_all(room, data)
     finally:
@@ -337,7 +339,7 @@ const socket = new WebSocket('ws://localhost:8000/secure?token=secret');
 
 socket.onopen = () => {
     console.log('Connected');
-    
+
     // Send a JSON message
     socket.send(JSON.stringify({
         type: 'message',

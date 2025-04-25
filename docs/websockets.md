@@ -15,7 +15,7 @@ app = ProAPI()
 async def websocket_handler(websocket):
     # Accept the connection
     await websocket.accept()
-    
+
     # Echo messages back to the client
     while True:
         message = await websocket.receive_text()
@@ -49,6 +49,11 @@ The `websocket` parameter passed to your handler is a `WebSocketConnection` obje
 - `websocket.query_params`: Query parameters
 - `websocket.headers`: HTTP headers
 - `websocket.closed`: Whether the connection is closed
+- `websocket.client_host`: Client IP address
+- `websocket.client_port`: Client port
+- `websocket.server_host`: Server IP address
+- `websocket.server_port`: Server port
+- `websocket.user_data`: Dictionary for storing user-defined data
 
 ## Path Parameters
 
@@ -59,11 +64,47 @@ You can use path parameters in WebSocket routes just like in HTTP routes:
 async def chat_room(websocket, room):
     await websocket.accept()
     await websocket.send_text(f"Welcome to room: {room}")
-    
+
     # Handle messages
     while True:
         message = await websocket.receive_text()
         # Process message...
+```
+
+## Room Management
+
+ProAPI includes built-in room management for WebSocket connections:
+
+```python
+# Join a room
+await websocket.join_room(room)
+
+# Leave a room
+await websocket.leave_room(room)
+
+# Get all rooms this connection is in
+rooms = await websocket.get_rooms()
+
+# Get the number of connections in a room
+count = await websocket.get_room_size(room)
+```
+
+## Broadcasting Messages
+
+You can broadcast messages to all connections in a room:
+
+```python
+# Broadcast a text message to all other connections in a room
+await websocket.broadcast(room, "Hello everyone!")
+
+# Broadcast a JSON message to all other connections in a room
+await websocket.broadcast_json(room, {"message": "Hello everyone!"})
+
+# Broadcast a text message to all connections in a room, including self
+await websocket.broadcast_to_all(room, "Hello everyone!")
+
+# Broadcast a JSON message to all connections in a room, including self
+await websocket.broadcast_json_to_all(room, {"message": "Hello everyone!"})
 ```
 
 ## Example: Chat Application
@@ -75,49 +116,38 @@ from proapi import ProAPI
 
 app = ProAPI()
 
-# Store active connections
-connections = {}
-
 @app.websocket("/chat/{room}")
 async def chat_room(websocket, room):
-    # Create room if it doesn't exist
-    if room not in connections:
-        connections[room] = []
-    
     # Accept the connection
     await websocket.accept()
-    
-    # Add to room
-    connections[room].append(websocket)
-    
+
+    # Join the room
+    await websocket.join_room(room)
+
     try:
         # Send welcome message
         await websocket.send_json({
             "type": "system",
             "message": f"Welcome to room: {room}",
-            "users": len(connections[room])
+            "users": await websocket.get_room_size(room)
         })
-        
+
         # Broadcast join message
-        for conn in connections[room]:
-            if conn != websocket:
-                await conn.send_json({
-                    "type": "system",
-                    "message": "A new user has joined",
-                    "users": len(connections[room])
-                })
-        
+        await websocket.broadcast_json(room, {
+            "type": "system",
+            "message": "A new user has joined",
+            "users": await websocket.get_room_size(room)
+        })
+
         # Handle messages
         while True:
             data = await websocket.receive_json()
-            
-            # Broadcast to all users in the room
-            for conn in connections[room]:
-                await conn.send_json(data)
+
+            # Broadcast message to all users in the room
+            await websocket.broadcast_json_to_all(room, data)
     finally:
-        # Remove from room
-        if room in connections and websocket in connections[room]:
-            connections[room].remove(websocket)
+        # Leave the room
+        await websocket.leave_room(room)
 ```
 
 ## Error Handling
@@ -128,7 +158,7 @@ WebSocket connections can be closed unexpectedly. Use try/except blocks to handl
 @app.websocket("/ws")
 async def websocket_handler(websocket):
     await websocket.accept()
-    
+
     try:
         while True:
             message = await websocket.receive_text()

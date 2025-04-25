@@ -13,8 +13,9 @@ The event loop protection system monitors the event loop for blocking operations
 ```python
 from proapi import ProAPI
 
-# Enable event loop protection (enabled by default)
-app = ProAPI(protect_event_loop=True)
+# Create a ProAPI application with fast mode enabled
+# Fast mode includes optimizations for better performance
+app = ProAPI(fast_mode=True)
 ```
 
 ### Benefits
@@ -32,7 +33,7 @@ ProAPI includes an intelligent task scheduler that automatically detects CPU-bou
 
 ```python
 from proapi import ProAPI
-from proapi.scheduler import thread_task, process_task, auto_task
+from proapi.performance.scheduler import thread_task, process_task, auto_task
 
 app = ProAPI()
 
@@ -77,11 +78,10 @@ The overload handler uses a combination of queuing, backpressure, and circuit br
 ```python
 from proapi import ProAPI
 
-# Configure overload protection
+# Configure ProAPI with performance settings
 app = ProAPI(
-    enable_overload_protection=True,  # Enabled by default
-    max_concurrent_requests=100,      # Maximum concurrent requests
-    request_queue_size=1000           # Maximum queue size
+    fast_mode=True,  # Enable optimized performance
+    workers=4        # Use multiple worker processes for better handling of concurrent requests
 )
 ```
 
@@ -103,10 +103,9 @@ The worker manager creates and manages multiple worker processes, monitors their
 ```python
 from proapi import ProAPI
 
-# Enable auto-restart for workers
+# Configure worker processes
 app = ProAPI(
-    workers=4,                  # Number of worker processes
-    auto_restart_workers=True   # Enable auto-restart (enabled by default)
+    workers=4  # Number of worker processes
 )
 
 # Run the application
@@ -130,24 +129,27 @@ The blocking handler automatically detects routes that block the event loop and 
 
 ```python
 from proapi import ProAPI
-from proapi.blocking_handler import with_blocking_detection, safe_sync_fallback
 
-app = ProAPI(auto_offload_blocking=True)  # Enabled by default
+# Note: The blocking_handler module is currently not available in the public API
+# This is an example of how it would be used if implemented
 
-# Automatically detect and handle blocking routes
+app = ProAPI(auto_offload_blocking=True)  # Example parameter
+
+# Example of how blocking detection would work
 @app.get("/blocking")
-@with_blocking_detection()
 def blocking_route(request):
-    # This will be automatically detected as blocking
+    # This would be automatically detected as blocking
     # and offloaded to a thread or process pool
     return {"result": compute_something_heavy()}
 
-# Safely fall back to synchronous mode for async routes
+# Example of how safe fallback would work
 @app.get("/fallback")
-@safe_sync_fallback
 async def fallback_route(request):
-    # If this async route fails, it will safely fall back to sync mode
-    return {"result": await async_operation()}
+    try:
+        return {"result": await async_operation()}
+    except Exception as e:
+        # Fall back to synchronous mode
+        return {"result": sync_operation()}
 ```
 
 ### Benefits
@@ -168,8 +170,8 @@ The auto-restart system monitors the application and worker processes and automa
 ```python
 from proapi import ProAPI
 
-# Enable auto-restart for workers
-app = ProAPI(auto_restart_workers=True)  # Enabled by default
+# Configure worker processes for better reliability
+app = ProAPI(workers=4)  # Use multiple worker processes
 
 # Run the application
 app.run()
@@ -188,28 +190,20 @@ All these features work together to provide a robust, reliable, and high-perform
 
 ```python
 from proapi import ProAPI
-from proapi.scheduler import auto_task
-from proapi.blocking_handler import with_blocking_detection
+from proapi.performance.scheduler import auto_task
 
-# Create a ProAPI application with all reliability features enabled
+# Create a ProAPI application with reliability features
 app = ProAPI(
     debug=True,
     fast_mode=True,
-    protect_event_loop=True,
-    auto_offload_blocking=True,
-    enable_overload_protection=True,
-    auto_restart_workers=True,
-    workers=4,
-    max_concurrent_requests=100,
-    request_queue_size=1000
+    workers=4  # Number of worker processes
 )
 
-# Use the features in your routes
+# Use the task scheduler for CPU-bound operations
 @app.get("/")
 @auto_task
-@with_blocking_detection()
 def index(request):
-    # This route is protected by all reliability features
+    # This route will be automatically offloaded if it's CPU-bound
     return {"message": "Hello, World!"}
 
 if __name__ == "__main__":
@@ -222,19 +216,20 @@ ProAPI provides detailed statistics for monitoring the performance and reliabili
 
 ```python
 from proapi import ProAPI
-from proapi.loop_protection import get_loop_stats
-from proapi.overload_handler import get_overload_stats
-from proapi.blocking_handler import get_blocking_routes
+from proapi.performance.optimized import get_cache_stats
 
 app = ProAPI()
 
 @app.get("/stats")
 def stats(request):
     return {
-        "loop_stats": get_loop_stats(),
-        "overload_stats": get_overload_stats(),
-        "blocking_routes": get_blocking_routes()
+        "cache_stats": get_cache_stats(),
+        "app_info": {
+            "debug": app.debug,
+            "fast_mode": app.fast_mode,
+            "workers": app.workers if hasattr(app, 'workers') else 1
+        }
     }
 ```
 
-This endpoint will return detailed statistics about the event loop, overload handler, and blocking routes, which can be used for monitoring and debugging.
+This endpoint will return detailed statistics about the cache performance and application configuration, which can be used for monitoring and debugging.
