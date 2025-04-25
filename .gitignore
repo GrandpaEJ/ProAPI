@@ -2,7 +2,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
 # C extensions
 *.so
 
@@ -151,7 +150,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-
 # Cython generated files
 *.c
 *.cpp
@@ -185,6 +183,8 @@ temp/
 # Project specific
 proapi_backup/
 proapi_backup_v*/
+upload.py
+test/
 
 # Generated documentation
 docs/build/
