@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="chat-container">
+    <h1>ProAPI Real-time Chat</h1>
+    
+    <div class="chat-intro">
+        <p>Welcome to the ProAPI real-time chat application! Join an existing room or create a new one.</p>
+    </div>
+    
+    <div class="room-selection">
+        <h2>Join a Chat Room</h2>
+        
+        <div class="username-form">
+            <label for="username">Your Username:</label>
+            <input type="text" id="username" placeholder="Enter your username" value="User_{{ range(1000, 9999) | random }}">
+        </div>
+        
+        <div class="existing-rooms">
+            <h3>Existing Rooms</h3>
+            {% if rooms %}
+                <ul class="room-list" id="room-list">
+                    {% for room in rooms %}
+                    <li>
+                        <a href="#" class="room-link" data-room="{{ room }}">{{ room }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No rooms available. Create a new one!</p>
+            {% endif %}
+        </div>
+        
+        <div class="create-room">
+            <h3>Create a New Room</h3>
+            <div class="room-form">
+                <input type="text" id="new-room" placeholder="Enter room name">
+                <button id="create-room-btn">Create & Join</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load existing rooms
+        fetchRooms();
+        
+        // Handle room links
+        document.querySelectorAll('.room-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const room = this.getAttribute('data-room');
+                const username = document.getElementById('username').value.trim();
+                
+                if (!username) {
+                    alert('Please enter a username');
+                    return;
+                }
+                
+                joinRoom(room, username);
+            });
+        });
+        
+        // Handle create room button
+        document.getElementById('create-room-btn').addEventListener('click', function() {
+            const roomName = document.getElementById('new-room').value.trim();
+            const username = document.getElementById('username').value.trim();
+            
+            if (!roomName) {
+                alert('Please enter a room name');
+                return;
+            }
+            
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+            
+            joinRoom(roomName, username);
+        });
+    });
+    
+    // Fetch rooms from API
+    function fetchRooms() {
+        fetch('/api/rooms')
+            .then(response => response.json())
+            .then(data => {
+                const roomList = document.getElementById('room-list');
+                
+                if (data.rooms.length === 0) {
+                    roomList.innerHTML = '<p>No rooms available. Create a new one!</p>';
+                    return;
+                }
+                
+                roomList.innerHTML = '';
+                
+                data.rooms.forEach(room => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <a href="#" class="room-link" data-room="${room.id}">
+                            ${room.name} 
+                            <span class="room-info">(${room.users} users, ${room.messages} messages)</span>
+                        </a>
+                    `;
+                    
+                    li.querySelector('.room-link').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const username = document.getElementById('username').value.trim();
+                        
+                        if (!username) {
+                            alert('Please enter a username');
+                            return;
+                        }
+                        
+                        joinRoom(room.id, username);
+                    });
+                    
+                    roomList.appendChild(li);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching rooms:', error);
+            });
+    }
+    
+    // Join a room
+    function joinRoom(room, username) {
+        // Store username in localStorage
+        localStorage.setItem('chat_username', username);
+        
+        // Redirect to room
+        window.location.href = `/chat/${room}?username=${encodeURIComponent(username)}`;
+    }
+</script>
+{% endblock %}

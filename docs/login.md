@@ -30,7 +30,7 @@ class User(UserMixin):
         self.id = id
         self.username = username
         self.email = email
-    
+
     # UserMixin provides these methods:
     # - is_authenticated (returns True)
     # - is_active (returns True)
@@ -61,7 +61,7 @@ def login(request):
     username = request.form.get("username")
     password = request.form.get("password")
     remember = request.form.get("remember") == "on"
-    
+
     # Find user and verify password
     user = find_user(username)
     if user and verify_password(user, password):
@@ -110,6 +110,108 @@ def index(request):
         return {"message": "Hello, guest!"}
 ```
 
+## HTML Responses in Login Routes
+
+When creating login pages or other authentication-related pages, you can return HTML content in two ways:
+
+### Method 1: Direct HTML Return
+
+You can return HTML content directly as a string:
+
+```python
+@app.get("/login")
+def login_page(request):
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Login</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .form-group { margin-bottom: 15px; }
+            label { display: block; margin-bottom: 5px; }
+            input { width: 300px; padding: 8px; border: 1px solid #ddd; }
+            button { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; }
+        </style>
+    </head>
+    <body>
+        <h1>Login</h1>
+        <form method="post" action="/login">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </body>
+    </html>
+    """
+```
+
+### Method 2: Using Response Class
+
+For more control over the response, you can use the Response class with an explicit content type:
+
+```python
+from proapi.server.server import Response
+
+@app.get("/login")
+def login_page(request):
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Login</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .form-group { margin-bottom: 15px; }
+            label { display: block; margin-bottom: 5px; }
+            input { width: 300px; padding: 8px; border: 1px solid #ddd; }
+            button { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; }
+        </style>
+    </head>
+    <body>
+        <h1>Login</h1>
+        <form method="post" action="/login">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </body>
+    </html>
+    """
+
+    return Response(
+        status=200,
+        body=html,
+        content_type="text/html"
+    )
+```
+
+### Method 3: Using Template Rendering
+
+For more complex pages, you can use template rendering:
+
+```python
+from proapi import render
+
+@app.get("/login")
+def login_page(request):
+    return render("login.html",
+                 title="Login",
+                 error=None)
+```
+
 ## Complete Example
 
 Here's a complete example of user authentication in ProAPI:
@@ -150,26 +252,86 @@ def index(request):
 
 @app.get("/login")
 def login_page(request):
-    return render("login.html")
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Login</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .form-group { margin-bottom: 15px; }
+            label { display: block; margin-bottom: 5px; }
+            input { width: 300px; padding: 8px; border: 1px solid #ddd; }
+            button { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; }
+        </style>
+    </head>
+    <body>
+        <h1>Login</h1>
+        <form method="post" action="/login">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </body>
+    </html>
+    """
 
 @app.post("/login")
 def login_submit(request):
     username = request.form.get("username")
     password = request.form.get("password")
-    
+
     # Find user by username
     user = next((u for u in users.values() if u.username == username), None)
-    
+
     if user and user.password == password:
         login_user(user)
-        return redirect("/")
+        return app.redirect("/")
     else:
-        return render("login.html", error="Invalid credentials")
+        # Return error message with login form
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Login</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                .form-group {{ margin-bottom: 15px; }}
+                label {{ display: block; margin-bottom: 5px; }}
+                input {{ width: 300px; padding: 8px; border: 1px solid #ddd; }}
+                button {{ background-color: #4CAF50; color: white; padding: 10px 15px; border: none; }}
+                .error {{ color: red; margin-bottom: 15px; }}
+            </style>
+        </head>
+        <body>
+            <h1>Login</h1>
+            <div class="error">Invalid credentials</div>
+            <form method="post" action="/login">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" value="{username}" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+        </body>
+        </html>
+        """
+        return html
 
 @app.get("/logout")
 def logout(request):
     logout_user()
-    return redirect("/")
+    return app.redirect("/")
 
 @app.get("/profile")
 @login_required
@@ -191,18 +353,18 @@ class CustomAnonymousUser:
     @property
     def is_authenticated(self):
         return False
-    
+
     @property
     def is_active(self):
         return False
-    
+
     @property
     def is_anonymous(self):
         return True
-    
+
     def get_id(self):
         return ""
-    
+
     # Custom properties
     @property
     def role(self):

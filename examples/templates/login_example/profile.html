@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }} - ProAPI Login Example</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; }
+        nav { margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
+        nav a { margin-right: 15px; text-decoration: none; color: #0066cc; }
+        .user-info { background-color: #f5f5f5; padding: 15px; border-radius: 5px; }
+        .user-info dt { font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="/">Home</a>
+            <a href="/profile">Profile</a>
+            {% if user.username == 'admin' %}
+                <a href="/admin">Admin</a>
+            {% endif %}
+            <a href="/logout">Logout</a>
+        </nav>
+        
+        <h1>User Profile</h1>
+        
+        <div class="user-info">
+            <dl>
+                <dt>Username:</dt>
+                <dd>{{ user.username }}</dd>
+                
+                <dt>Email:</dt>
+                <dd>{{ user.email or 'Not set' }}</dd>
+                
+                <dt>User ID:</dt>
+                <dd>{{ user.id }}</dd>
+            </dl>
+        </div>
+    </div>
+</body>
+</html>
+    

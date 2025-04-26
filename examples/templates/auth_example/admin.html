@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        nav {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        nav a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #333;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            margin-top: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/profile">Profile</a>
+        <a href="/admin">Admin</a>
+        {% if 'editor' in user.roles %}
+            <a href="/editor">Editor</a>
+        {% endif %}
+        {% if 'user' in user.roles %}
+            <a href="/user">User</a>
+        {% endif %}
+        <a href="/logout">Logout</a>
+    </nav>
+
+    <h1>{{ title }}</h1>
+
+    <div class="card">
+        <h2>Admin Dashboard</h2>
+        <p>Welcome to the admin dashboard, {{ user.username }}!</p>
+        <p>This page is only accessible to users with the <span class="badge">admin</span> role.</p>
+    </div>
+
+    <div class="card">
+        <h2>User Management</h2>
+        <p>Here you can manage all users in the system:</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Roles</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>admin</td>
+                    <td>admin@example.com</td>
+                    <td><span class="badge">admin</span></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>user</td>
+                    <td>user@example.com</td>
+                    <td><span class="badge">user</span></td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>editor</td>
+                    <td>editor@example.com</td>
+                    <td><span class="badge">editor</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>System Information</h2>
+        <p>This is a demonstration of role-based access control in ProAPI.</p>
+        <p>The admin page is protected by the <code>admin_only.require()</code> decorator, which checks if the current user has the admin role.</p>
+    </div>
+</body>
+</html>

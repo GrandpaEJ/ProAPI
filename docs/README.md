@@ -16,8 +16,11 @@ ProAPI is a lightweight, beginner-friendly yet powerful Python web framework des
 - [Getting Started](getting-started.md) - Basic usage and concepts
 - [Routing](routing.md) - URL routing and path parameters
 - [Request and Response](request-response.md) - Working with HTTP requests and responses
+- [Custom Responses](custom-responses.md) - Creating custom responses with different content types
+- [HTML Responses](html-responses.md) - Detailed guide on HTML response handling
 - [Templates](templates.md) - Template rendering with Jinja2
 - [Sessions](sessions.md) - Session management
+- [Authentication](authentication.md) - User authentication and authorization
 - [Login](login.md) - User authentication and login management
 - [Middleware](middleware.md) - Using and creating middleware
 
@@ -29,6 +32,8 @@ ProAPI is a lightweight, beginner-friendly yet powerful Python web framework des
 ### Performance
 - [Fast Mode](fast_mode.md) - Optimized request handling
 - [Optimization](optimization.md) - Performance optimization techniques
+- [Performance](performance.md) - Performance benchmarks and test results
+- [Reliability](reliability.md) - Advanced reliability features
 
 ### Tools and Deployment
 - [CLI](cli.md) - Command-line interface
@@ -37,6 +42,15 @@ ProAPI is a lightweight, beginner-friendly yet powerful Python web framework des
 
 ### Summary
 - [Summary](summary.md) - Overview of ProAPI features and capabilities
+
+## Recent Updates
+
+### Version 0.3.11 Changes
+- **Authentication Improvements**: Enhanced authentication system with better HTML response handling
+- **HTML Response Handling**: Added documentation on different methods for returning HTML content
+- **Path-specific Behavior**: Added notes about special handling for certain path names (e.g., "/register")
+- **Response Class Usage**: Clarified when to use direct string returns vs. Response class with explicit content type
+- **Example Updates**: Updated examples to demonstrate best practices for HTML responses
 
 ## Installation
 

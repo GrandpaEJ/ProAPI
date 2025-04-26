@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    
+    <div class="success-message">
+        <p>Welcome, {{ username }}! You have successfully logged in.</p>
+        <p><a href="/admin" class="button">Go to Admin Panel</a></p>
+    </div>
+{% endblock %}

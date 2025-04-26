@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ProAPI WebSocket Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .messages { border: 1px solid #ccc; height: 300px; overflow-y: auto; margin-bottom: 10px; padding: 10px; }
+        .input-form { display: flex; }
+        .message-input { flex-grow: 1; padding: 8px; margin-right: 10px; }
+        button { padding: 8px 16px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        .system { color: #888; }
+        .error { color: #f44336; }
+        .container { margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+    <h1>ProAPI WebSocket Test</h1>
+    
+    <div class="container">
+        <h2>Echo Test</h2>
+        <p>Simple echo server that returns your messages.</p>
+        <div id="echo-messages" class="messages"></div>
+        <form id="echo-form" class="input-form">
+            <input type="text" id="echo-input" class="message-input" placeholder="Type a message..." />
+            <button type="submit">Send</button>
+        </form>
+    </div>
+    
+    <div class="container">
+        <h2>Chat Room</h2>
+        <p>Multi-user chat room with room support.</p>
+        <div>
+            <label for="room">Room:</label>
+            <input type="text" id="room" value="general" />
+            <label for="username">Username:</label>
+            <input type="text" id="username" value="User" />
+            <button id="join-btn">Join</button>
+            <button id="leave-btn" disabled>Leave</button>
+        </div>
+        <div id="chat-messages" class="messages"></div>
+        <form id="chat-form" class="input-form">
+            <input type="text" id="chat-input" class="message-input" placeholder="Type a message..." disabled />
+            <button type="submit" disabled>Send</button>
+        </form>
+    </div>
+    
+    <script>
+        // Configuration
+        const HOST = window.location.hostname || 'localhost';
+        const PORT = 8000;
+        
+        // Echo WebSocket
+        const echoMessages = document.getElementById('echo-messages');
+        const echoForm = document.getElementById('echo-form');
+        const echoInput = document.getElementById('echo-input');
+        let echoSocket = null;
+        
+        function connectEcho() {
+            echoSocket = new WebSocket(`ws://${HOST}:${PORT}/ws`);
+            
+            echoSocket.onopen = () => {
+                addEchoMessage('Connected to echo server', 'system');
+            };
+            
+            echoSocket.onmessage = (event) => {
+                addEchoMessage(`Server: ${event.data}`);
+            };
+            
+            echoSocket.onclose = () => {
+                addEchoMessage('Disconnected from echo server', 'system');
+                // Try to reconnect after 3 seconds
+                setTimeout(connectEcho, 3000);
+            };
+            
+            echoSocket.onerror = (error) => {
+                addEchoMessage('WebSocket error', 'error');
+                console.error('WebSocket error:', error);
+            };
+        }
+        
+        function addEchoMessage(message, className = '') {
+            const div = document.createElement('div');
+            div.textContent = message;
+            if (className) div.className = className;
+            echoMessages.appendChild(div);
+            echoMessages.scrollTop = echoMessages.scrollHeight;
+        }
+        
+        echoForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = echoInput.value;
+            if (message && echoSocket && echoSocket.readyState === WebSocket.OPEN) {
+                addEchoMessage(`You: ${message}`);
+                echoSocket.send(message);
+                echoInput.value = '';
+            }
+        });
+        
+        // Chat WebSocket
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const roomInput = document.getElementById('room');
+        const usernameInput = document.getElementById('username');
+        const joinBtn = document.getElementById('join-btn');
+        const leaveBtn = document.getElementById('leave-btn');
+        let chatSocket = null;
+        
+        function joinChat() {
+            const room = roomInput.value || 'general';
+            const username = usernameInput.value || 'User';
+            
+            chatSocket = new WebSocket(`ws://${HOST}:${PORT}/chat/${room}?username=${encodeURIComponent(username)}`);
+            
+            chatSocket.onopen = () => {
+                addChatMessage('Connected to chat server', 'system');
+                chatInput.disabled = false;
+                chatForm.querySelector('button').disabled = false;
+                joinBtn.disabled = true;
+                leaveBtn.disabled = false;
+                roomInput.disabled = true;
+                usernameInput.disabled = true;
+            };
+            
+            chatSocket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'system') {
+                        addChatMessage(data.message, 'system');
+                    } else {
+                        addChatMessage(`${data.username}: ${data.message}`);
+                    }
+                } catch (e) {
+                    addChatMessage(`Received: ${event.data}`);
+                }
+            };
+            
+            chatSocket.onclose = () => {
+                addChatMessage('Disconnected from chat server', 'system');
+                chatInput.disabled = true;
+                chatForm.querySelector('button').disabled = true;
+                joinBtn.disabled = false;
+                leaveBtn.disabled = true;
+                roomInput.disabled = false;
+                usernameInput.disabled = false;
+            };
+            
+            chatSocket.onerror = (error) => {
+                addChatMessage('WebSocket error', 'error');
+                console.error('WebSocket error:', error);
+            };
+        }
+        
+        function leaveChat() {
+            if (chatSocket) {
+                chatSocket.close();
+            }
+        }
+        
+        function addChatMessage(message, className = '') {
+            const div = document.createElement('div');
+            div.textContent = message;
+            if (className) div.className = className;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = chatInput.value;
+            if (message && chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.send(JSON.stringify({
+                    message: message
+                }));
+                chatInput.value = '';
+            }
+        });
+        
+        joinBtn.addEventListener('click', joinChat);
+        leaveBtn.addEventListener('click', leaveChat);
+        
+        // Connect to echo server on page load
+        connectEcho();
+    </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        nav {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        nav a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #333;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            margin-top: 0;
+        }
+        .profile-info {
+            margin-bottom: 20px;
+        }
+        .profile-info p {
+            margin: 5px 0;
+        }
+        .profile-info strong {
+            display: inline-block;
+            width: 100px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/profile">Profile</a>
+        {% if 'admin' in user.roles %}
+            <a href="/admin">Admin</a>
+        {% endif %}
+        {% if 'editor' in user.roles %}
+            <a href="/editor">Editor</a>
+        {% endif %}
+        {% if 'user' in user.roles %}
+            <a href="/user">User</a>
+        {% endif %}
+        <a href="/logout">Logout</a>
+    </nav>
+
+    <h1>{{ title }}</h1>
+
+    <div class="card">
+        <h2>User Profile</h2>
+        <div class="profile-info">
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>ID:</strong> {{ user.id }}</p>
+            <p>
+                <strong>Roles:</strong>
+                {% for role in user.roles %}
+                    <span class="badge">{{ role }}</span>
+                {% endfor %}
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Available Pages</h2>
+        <p>Based on your roles, you can access the following pages:</p>
+        <ul>
+            {% if 'admin' in user.roles %}
+                <li><a href="/admin">Admin Page</a></li>
+            {% endif %}
+            {% if 'editor' in user.roles %}
+                <li><a href="/editor">Editor Page</a></li>
+            {% endif %}
+            {% if 'user' in user.roles %}
+                <li><a href="/user">User Page</a></li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>API Access</h2>
+        <p>You can access the API endpoints using your credentials:</p>
+        <ul>
+            <li>JWT Authentication: <code>POST /api/login</code> with your username and password</li>
+            <li>HTTP Basic Authentication: <code>GET /api/basic-auth</code> with your username and password</li>
+            <li>HTTP Digest Authentication: <code>GET /api/digest-auth</code> with your username and password</li>
+        </ul>
+    </div>
+</body>
+</html>

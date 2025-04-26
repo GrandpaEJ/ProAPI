@@ -33,12 +33,10 @@ A lightweight, beginner-friendly yet powerful Python web framework - simpler tha
 - Improved ASGI compatibility for better server integration
 
 ### Advanced Reliability Features
-- **Built-in protection against event-loop blocking**
+- **Performance optimizations** with route caching and object pooling
 - **Intelligent task scheduler** for heavy CPU/I/O operations
-- **Graceful overload handler** with queue and backpressure system
-- **Multiprocess worker manager** with health monitoring
-- **Safe fallback to sync mode** for blocking routes
-- **Auto-restart on failure** for workers
+- **Multiprocess worker management** for better concurrency
+- **WebSocket optimization** for efficient real-time communication
 
 ## Installation
 
@@ -448,15 +446,15 @@ ProAPI includes advanced reliability features to ensure your application runs sm
 ```python
 from proapi import ProAPI
 
-# Enable event loop protection (enabled by default)
-app = ProAPI(protect_event_loop=True)
+# Enable fast mode for optimized performance
+app = ProAPI(fast_mode=True)
 ```
 
 ### Intelligent Task Scheduler
 
 ```python
 from proapi import ProAPI
-from proapi.scheduler import thread_task, process_task, auto_task
+from proapi.performance.scheduler import thread_task, process_task, auto_task
 
 app = ProAPI()
 
@@ -468,28 +466,26 @@ def auto_route(request):
     return {"result": compute_something_heavy()}
 ```
 
-### Graceful Overload Handler
+### Performance Optimization
 
 ```python
 from proapi import ProAPI
 
-# Configure overload protection
+# Configure for optimal performance
 app = ProAPI(
-    enable_overload_protection=True,  # Enabled by default
-    max_concurrent_requests=100,      # Maximum concurrent requests
-    request_queue_size=1000           # Maximum queue size
+    fast_mode=True,  # Enable optimized performance
+    workers=4        # Use multiple worker processes
 )
 ```
 
-### Worker Auto-Restart
+### Multiprocess Workers
 
 ```python
 from proapi import ProAPI
 
-# Enable auto-restart for workers
+# Configure worker processes
 app = ProAPI(
-    workers=4,                  # Number of worker processes
-    auto_restart_workers=True    # Enable auto-restart (enabled by default)
+    workers=4  # Number of worker processes
 )
 
 # Run the application

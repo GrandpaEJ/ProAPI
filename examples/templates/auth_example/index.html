@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        nav {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        nav a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #333;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            margin-top: 0;
+        }
+        .api-example {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        {% if user.is_authenticated %}
+            <a href="/profile">Profile</a>
+            {% if 'admin' in user.roles %}
+                <a href="/admin">Admin</a>
+            {% endif %}
+            {% if 'editor' in user.roles %}
+                <a href="/editor">Editor</a>
+            {% endif %}
+            {% if 'user' in user.roles %}
+                <a href="/user">User</a>
+            {% endif %}
+            <a href="/logout">Logout</a>
+        {% else %}
+            <a href="/login">Login</a>
+            <a href="/register">Register</a>
+        {% endif %}
+    </nav>
+
+    <h1>{{ title }}</h1>
+
+    {% if user.is_authenticated %}
+        <p>Welcome, {{ user.username }}!</p>
+    {% else %}
+        <p>Welcome, guest! Please <a href="/login">login</a> or <a href="/register">register</a> to access all features.</p>
+    {% endif %}
+
+    <div class="card">
+        <h2>Authentication Features</h2>
+        <p>This example demonstrates the various authentication features in ProAPI:</p>
+        <ul>
+            <li>Basic user authentication with LoginManager</li>
+            <li>JWT authentication for APIs</li>
+            <li>HTTP Basic and Digest authentication</li>
+            <li>Role-based access control with Principal</li>
+            <li>User account management with UserManager</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>API Endpoints</h2>
+        <p>The following API endpoints are available for testing:</p>
+
+        <h3>JWT Authentication</h3>
+        <div class="api-example">POST /api/login</div>
+        <p>Login and get JWT tokens. Send a JSON body with username and password:</p>
+        <pre>
+{
+    "username": "admin",
+    "password": "admin"
+}
+        </pre>
+
+        <div class="api-example">GET /api/protected</div>
+        <p>Protected endpoint using JWT authentication. Send the access token in the Authorization header:</p>
+        <pre>
+Authorization: Bearer &lt;access_token&gt;
+        </pre>
+
+        <div class="api-example">POST /api/refresh</div>
+        <p>Refresh token endpoint. Send the refresh token in the Authorization header:</p>
+        <pre>
+Authorization: Bearer &lt;refresh_token&gt;
+        </pre>
+
+        <h3>HTTP Basic Authentication</h3>
+        <div class="api-example">GET /api/basic-auth</div>
+        <p>Protected endpoint using HTTP Basic authentication. Send username and password in the Authorization header.</p>
+
+        <h3>HTTP Digest Authentication</h3>
+        <div class="api-example">GET /api/digest-auth</div>
+        <p>Protected endpoint using HTTP Digest authentication.</p>
+    </div>
+
+    <div class="card">
+        <h2>Role-Based Access Control</h2>
+        <p>The following pages are protected by role-based access control:</p>
+        <ul>
+            <li><a href="/admin">Admin Page</a> - Requires admin role</li>
+            <li><a href="/editor">Editor Page</a> - Requires editor role</li>
+            <li><a href="/user">User Page</a> - Requires user role</li>
+        </ul>
+    </div>
+</body>
+</html>

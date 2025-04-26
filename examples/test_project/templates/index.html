@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    
+    <div class="posts">
+        {% for post in posts %}
+            <article class="post-card">
+                <h2><a href="/posts/{{ post.id }}">{{ post.title }}</a></h2>
+                <div class="post-meta">
+                    <span class="author">By {{ post.author }}</span>
+                    <span class="date">{{ post.created_at.split('T')[0] }}</span>
+                </div>
+                <div class="post-tags">
+                    {% for tag in post.tags %}
+                        <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                <div class="post-excerpt">
+                    {{ post.content.split('\n')[0] }}
+                </div>
+                <a href="/posts/{{ post.id }}" class="read-more">Read more</a>
+            </article>
+        {% endfor %}
+    </div>
+{% endblock %}

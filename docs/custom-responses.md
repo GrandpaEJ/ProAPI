@@ -31,11 +31,38 @@ def custom_response(request):
 
 ### HTML Response
 
+There are two ways to return HTML content from your route handlers:
+
+#### Method 1: Direct String Return
+
+The simplest way is to return an HTML string directly:
+
+```python
+@app.get("/html")
+def html_response(request):
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>ProAPI Example</title>
+    </head>
+    <body>
+        <h1>ProAPI Example</h1>
+        <p>This is a simple HTML response.</p>
+    </body>
+    </html>
+    """
+```
+
+#### Method 2: Using Response Class
+
+For more control over the response, you can use the Response class with an explicit content type:
+
 ```python
 @app.get("/html")
 def html_response(request):
     from proapi.server import Response
-    
+
     html = """
     <!DOCTYPE html>
     <html>
@@ -48,8 +75,58 @@ def html_response(request):
     </body>
     </html>
     """
-    
+
     return Response(body=html, content_type="text/html")
+```
+
+#### Important Note on Path Names
+
+Some path names may have special handling in the framework. For example, the "/register" path has been observed to have issues when returning HTML content directly. In such cases, you have two options:
+
+1. Use the Response class with an explicit content_type:
+
+```python
+@app.get("/register")
+def register_page(request):
+    from proapi.server import Response
+
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Register</title>
+    </head>
+    <body>
+        <h1>Register</h1>
+        <form method="post" action="/register">
+            <!-- Form fields -->
+        </form>
+    </body>
+    </html>
+    """
+
+    return Response(body=html, content_type="text/html")
+```
+
+2. Use a slightly different path name:
+
+```python
+@app.get("/signup")  # Alternative to "/register"
+def signup_page(request):
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Register</title>
+    </head>
+    <body>
+        <h1>Register</h1>
+        <form method="post" action="/register">
+            <!-- Form fields -->
+        </form>
+    </body>
+    </html>
+    """
 ```
 
 ### Plain Text Response
@@ -58,7 +135,7 @@ def html_response(request):
 @app.get("/text")
 def text_response(request):
     from proapi.server import Response
-    
+
     return Response(
         body="This is a plain text response from ProAPI.",
         content_type="text/plain"
@@ -73,7 +150,7 @@ While dictionaries are automatically converted to JSON, you can also create a JS
 @app.get("/json")
 def json_response(request):
     from proapi.server import Response
-    
+
     return Response(
         body={"message": "This is JSON"},
         content_type="application/json"
@@ -86,7 +163,7 @@ Or use the `jsonify` helper function:
 @app.get("/json")
 def json_response(request):
     from proapi.helpers import jsonify
-    
+
     return jsonify({"message": "This is JSON"})
 ```
 
@@ -98,7 +175,7 @@ To redirect to another URL, use the `redirect` function from `proapi.utils`:
 @app.get("/redirect")
 def redirect_response(request):
     from proapi.utils import redirect
-    
+
     return redirect("/destination")
 ```
 
@@ -110,7 +187,7 @@ To return an error response, set the appropriate status code:
 @app.get("/error")
 def error_response(request):
     from proapi.server import Response
-    
+
     return Response(
         body={"error": "This is an error response"},
         status=500,
@@ -124,7 +201,7 @@ def error_response(request):
 @app.get("/cookie")
 def cookie_example(request):
     from proapi.server import Response
-    
+
     response = Response(body="Cookie set!")
     response.set_cookie(
         name="session",
@@ -134,7 +211,7 @@ def cookie_example(request):
         secure=True,
         http_only=True
     )
-    
+
     return response
 ```
 
@@ -144,11 +221,11 @@ def cookie_example(request):
 @app.get("/download")
 def download_example(request):
     from proapi.server import Response
-    
+
     # Read file content
     with open("example.txt", "rb") as f:
         content = f.read()
-    
+
     return Response(
         body=content,
         content_type="application/octet-stream",

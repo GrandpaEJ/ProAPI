@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        nav {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        nav a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #333;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            margin-top: 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+        .editor-area {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: monospace;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/profile">Profile</a>
+        {% if 'admin' in user.roles %}
+            <a href="/admin">Admin</a>
+        {% endif %}
+        <a href="/editor">Editor</a>
+        {% if 'user' in user.roles %}
+            <a href="/user">User</a>
+        {% endif %}
+        <a href="/logout">Logout</a>
+    </nav>
+
+    <h1>{{ title }}</h1>
+
+    <div class="card">
+        <h2>Editor Dashboard</h2>
+        <p>Welcome to the editor dashboard, {{ user.username }}!</p>
+        <p>This page is only accessible to users with the <span class="badge">editor</span> role.</p>
+    </div>
+
+    <div class="card">
+        <h2>Content Editor</h2>
+        <p>Here you can edit content for the website:</p>
+        
+        <textarea class="editor-area">
+# Welcome to our website
+
+This is a sample content that can be edited by users with the editor role.
+
+## Features
+
+- Easy to use editor
+- Role-based access control
+- Secure authentication
+        </textarea>
+        
+        <button>Save Changes</button>
+    </div>
+
+    <div class="card">
+        <h2>System Information</h2>
+        <p>This is a demonstration of role-based access control in ProAPI.</p>
+        <p>The editor page is protected by the <code>editor_only.require()</code> decorator, which checks if the current user has the editor role.</p>
+    </div>
+</body>
+</html>

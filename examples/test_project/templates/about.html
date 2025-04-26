@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    
+    <div class="about-content">
+        <p>This is a test project built with {{ framework }}, a lightweight Python web framework.</p>
+        
+        <h2>About {{ framework }}</h2>
+        <p>{{ framework }} is a lightweight, beginner-friendly yet powerful Python web framework.</p>
+        
+        <h3>Features:</h3>
+        <ul>
+            <li>Decorator-based routing (@app.get(), @app.post(), etc.)</li>
+            <li>Template rendering with Jinja2</li>
+            <li>Easy server startup</li>
+            <li>Optional async support</li>
+            <li>Optional Cython compilation</li>
+            <li>Minimal dependencies</li>
+            <li>Built-in JSON support</li>
+            <li>Middleware system</li>
+            <li>Automatic API documentation</li>
+            <li>Port forwarding to expose apps to the internet</li>
+        </ul>
+        
+        <h3>Version</h3>
+        <p>{{ version }}</p>
+    </div>
+{% endblock %}

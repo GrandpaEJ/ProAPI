@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="chat-room">
+    <div class="chat-header">
+        <h1>Chat Room: {{ room_id }}</h1>
+        <a href="/" class="back-link">← Back to Rooms</a>
+    </div>
+    
+    <div class="chat-container">
+        <div class="chat-sidebar">
+            <div class="active-users">
+                <h3>Active Users</h3>
+                <ul id="user-list">
+                    {% for user in active_users %}
+                    <li>{{ user }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+        <div class="chat-main">
+            <div class="chat-messages" id="chat-messages">
+                {% for message in messages %}
+                <div class="message {% if message.type == 'system' %}system-message{% endif %}">
+                    {% if message.type == 'system' %}
+                        <div class="message-content">{{ message.content }}</div>
+                        <div class="message-time">{{ message.timestamp }}</div>
+                    {% else %}
+                        <div class="message-header">
+                            <span class="message-username">{{ message.username }}</span>
+                            <span class="message-time">{{ message.timestamp }}</span>
+                        </div>
+                        <div class="message-content">{{ message.content }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="chat-input">
+                <form id="message-form">
+                    <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
+                    <button type="submit">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Chat WebSocket functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const roomId = '{{ room_id }}';
+        let username = new URLSearchParams(window.location.search).get('username');
+        
+        // If no username in URL, try to get from localStorage
+        if (!username) {
+            username = localStorage.getItem('chat_username');
+            
+            // If still no username, generate a random one
+            if (!username) {
+                username = 'User_' + Math.floor(Math.random() * 9000 + 1000);
+                localStorage.setItem('chat_username', username);
+            }
+        }
+        
+        // Connect to WebSocket
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/chat/${roomId}?username=${encodeURIComponent(username)}`;
+        const socket = new WebSocket(wsUrl);
+        
+        // WebSocket event handlers
+        socket.onopen = function(event) {
+            console.log('WebSocket connection established');
+            
+            // Enable message input
+            document.getElementById('message-input').disabled = false;
+        };
+        
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            
+            // Handle different message types
+            if (data.type === 'system') {
+                // Update user list
+                if (data.users) {
+                    updateUserList(data.users);
+                }
+                
+                // Add system message
+                addSystemMessage(data.content, data.timestamp);
+            } else {
+                // Add chat message
+                addChatMessage(data.username, data.content, data.timestamp);
+            }
+            
+            // Scroll to bottom
+            scrollToBottom();
+        };
+        
+        socket.onclose = function(event) {
+            console.log('WebSocket connection closed');
+            
+            // Disable message input
+            document.getElementById('message-input').disabled = true;
+            
+            // Add system message
+            addSystemMessage('Connection closed. Please refresh the page to reconnect.', new Date().toISOString());
+            
+            // Scroll to bottom
+            scrollToBottom();
+        };
+        
+        socket.onerror = function(error) {
+            console.error('WebSocket error:', error);
+            
+            // Add system message
+            addSystemMessage('Error connecting to chat server. Please refresh the page to try again.', new Date().toISOString());
+            
+            // Scroll to bottom
+            scrollToBottom();
+        };
+        
+        // Message form submission
+        document.getElementById('message-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            
+            if (message && socket.readyState === WebSocket.OPEN) {
+                // Send message
+                socket.send(JSON.stringify({
+                    content: message
+                }));
+                
+                // Clear input
+                messageInput.value = '';
+            }
+        });
+        
+        // Helper functions
+        function addChatMessage(username, content, timestamp) {
+            const messagesContainer = document.getElementById('chat-messages');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'message-header';
+            
+            const usernameSpan = document.createElement('span');
+            usernameSpan.className = 'message-username';
+            usernameSpan.textContent = username;
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'message-time';
+            timeSpan.textContent = formatTimestamp(timestamp);
+            
+            headerDiv.appendChild(usernameSpan);
+            headerDiv.appendChild(timeSpan);
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+            
+            messageDiv.appendChild(headerDiv);
+            messageDiv.appendChild(contentDiv);
+            
+            messagesContainer.appendChild(messageDiv);
+        }
+        
+        function addSystemMessage(content, timestamp) {
+            const messagesContainer = document.getElementById('chat-messages');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message system-message';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = formatTimestamp(timestamp);
+            
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(timeDiv);
+            
+            messagesContainer.appendChild(messageDiv);
+        }
+        
+        function updateUserList(users) {
+            const userList = document.getElementById('user-list');
+            
+            userList.innerHTML = '';
+            
+            users.forEach(user => {
+                const li = document.createElement('li');
+                li.textContent = user;
+                
+                // Highlight current user
+                if (user === username) {
+                    li.className = 'current-user';
+                }
+                
+                userList.appendChild(li);
+            });
+        }
+        
+        function scrollToBottom() {
+            const messagesContainer = document.getElementById('chat-messages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString();
+        }
+        
+        // Initial scroll to bottom
+        scrollToBottom();
+    });
+</script>
+{% endblock %}

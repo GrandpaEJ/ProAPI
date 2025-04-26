@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        nav {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        nav a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #333;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            margin-top: 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+        .dashboard-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .dashboard-item h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/profile">Profile</a>
+        {% if 'admin' in user.roles %}
+            <a href="/admin">Admin</a>
+        {% endif %}
+        {% if 'editor' in user.roles %}
+            <a href="/editor">Editor</a>
+        {% endif %}
+        <a href="/user">User</a>
+        <a href="/logout">Logout</a>
+    </nav>
+
+    <h1>{{ title }}</h1>
+
+    <div class="card">
+        <h2>User Dashboard</h2>
+        <p>Welcome to the user dashboard, {{ user.username }}!</p>
+        <p>This page is only accessible to users with the <span class="badge">user</span> role.</p>
+    </div>
+
+    <div class="card">
+        <h2>Your Dashboard</h2>
+        
+        <div class="dashboard-item">
+            <h3>Recent Activity</h3>
+            <p>You logged in at {{ now().strftime('%Y-%m-%d %H:%M:%S') }}</p>
+        </div>
+        
+        <div class="dashboard-item">
+            <h3>Messages</h3>
+            <p>You have no new messages.</p>
+        </div>
+        
+        <div class="dashboard-item">
+            <h3>Settings</h3>
+            <p>You can update your profile settings here.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>System Information</h2>
+        <p>This is a demonstration of role-based access control in ProAPI.</p>
+        <p>The user page is protected by the <code>user_only.require()</code> decorator, which checks if the current user has the user role.</p>
+    </div>
+</body>
+</html>

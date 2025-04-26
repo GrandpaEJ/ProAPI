@@ -1,0 +1,55 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }} - ProAPI Login Example</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; }
+        nav { margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
+        nav a { margin-right: 15px; text-decoration: none; color: #0066cc; }
+        .message { padding: 10px; background-color: #e8f4f8; border-left: 5px solid #0066cc; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="/">Home</a>
+            {% if user %}
+                <a href="/profile">Profile</a>
+                {% if user.username == 'admin' %}
+                    <a href="/admin">Admin</a>
+                {% endif %}
+                <a href="/logout">Logout</a>
+            {% else %}
+                <a href="/login">Login</a>
+            {% endif %}
+        </nav>
+        
+        <h1>Welcome to ProAPI Login Example</h1>
+        
+        <div class="message">
+            {% if user %}
+                <p>You are logged in as <strong>{{ user.username }}</strong>.</p>
+            {% else %}
+                <p>You are not logged in. <a href="/login">Login</a> to access protected pages.</p>
+            {% endif %}
+        </div>
+        
+        <h2>Available Pages</h2>
+        <ul>
+            <li><a href="/">Home</a> - Public page</li>
+            <li><a href="/profile">Profile</a> - Protected page (requires login)</li>
+            <li><a href="/admin">Admin</a> - Protected page (requires admin login)</li>
+            <li><a href="/api/user">API User</a> - Protected API endpoint (requires login)</li>
+        </ul>
+        
+        <h2>Test Users</h2>
+        <ul>
+            <li>Admin: username=<code>admin</code>, password=<code>admin</code></li>
+            <li>Regular User: username=<code>user</code>, password=<code>user</code></li>
+        </ul>
+    </div>
+</body>
+</html>
+    

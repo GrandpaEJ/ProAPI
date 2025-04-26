@@ -29,12 +29,10 @@ ProAPI is a lightweight, beginner-friendly yet powerful Python web framework. It
 - **Response compression** - Automatic response compression for better performance
 
 ### Advanced Reliability Features
-- **Event loop protection** - Built-in protection against event loop blocking
+- **Performance optimizations** - Route caching, object pooling, and efficient request handling
 - **Intelligent task scheduler** - Auto-detection and routing of CPU/IO-bound operations
-- **Graceful overload handling** - Queue and backpressure system for high load
-- **Multiprocess worker management** - Worker health monitoring and auto-restart
-- **Safe fallback for blocking routes** - Automatic detection and handling of blocking routes
-- **Auto-restart on failure** - Per-worker restart on failure for maximum uptime
+- **Multiprocess worker management** - Multiple worker processes for better concurrency
+- **WebSocket optimization** - Efficient WebSocket handling and connection management
 
 ## Installation
 

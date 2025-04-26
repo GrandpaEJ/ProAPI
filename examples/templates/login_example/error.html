@@ -1,0 +1,39 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }} - ProAPI Login Example</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; }
+        nav { margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
+        nav a { margin-right: 15px; text-decoration: none; color: #0066cc; }
+        .error { color: red; padding: 15px; background-color: #ffeeee; border-left: 5px solid red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="/">Home</a>
+            {% if current_user.is_authenticated %}
+                <a href="/profile">Profile</a>
+                {% if current_user.username == 'admin' %}
+                    <a href="/admin">Admin</a>
+                {% endif %}
+                <a href="/logout">Logout</a>
+            {% else %}
+                <a href="/login">Login</a>
+            {% endif %}
+        </nav>
+        
+        <h1>{{ title }}</h1>
+        
+        <div class="error">
+            <p>{{ message }}</p>
+        </div>
+        
+        <p><a href="/">Return to Home</a></p>
+    </div>
+</body>
+</html>
+    

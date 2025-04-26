@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    
+    <div class="admin-header">
+        <p>Welcome, {{ username }}!</p>
+        <a href="/admin/new" class="button">Create New Post</a>
+    </div>
+    
+    <h2>Manage Posts</h2>
+    
+    <div class="admin-posts">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in posts %}
+                    <tr>
+                        <td>{{ post.id }}</td>
+                        <td><a href="/posts/{{ post.id }}">{{ post.title }}</a></td>
+                        <td>{{ post.author }}</td>
+                        <td>{{ post.created_at.split('T')[0] }}</td>
+                        <td class="actions">
+                            <button class="edit-post" data-id="{{ post.id }}">Edit</button>
+                            <button class="delete-post" data-id="{{ post.id }}">Delete</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Edit Post</h2>
+            <form id="edit-form">
+                <input type="hidden" id="edit-id">
+                
+                <div class="form-group">
+                    <label for="edit-title">Title:</label>
+                    <input type="text" id="edit-title" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-author">Author:</label>
+                    <input type="text" id="edit-author" name="author" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-tags">Tags (comma-separated):</label>
+                    <input type="text" id="edit-tags" name="tags">
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-content">Content:</label>
+                    <textarea id="edit-content" name="content" rows="10" required></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="button">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Delete Post</h2>
+            <p>Are you sure you want to delete this post? This action cannot be undone.</p>
+            <div class="form-actions">
+                <button id="confirm-delete" class="button danger">Delete</button>
+                <button id="cancel-delete" class="button">Cancel</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
