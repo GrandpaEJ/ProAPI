@@ -80,7 +80,7 @@ full = [
 ]
 
 [project.scripts]
-proapi = "proapi.cli:main"
+proapi = "proapi.core.cli:main"
 
 [tool.setuptools]
 packages = ["proapi"]
