@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "proapi"
-version = "0.4.3"
+version = "0.4.4"
 description = "A lightweight, beginner-friendly yet powerful Python web framework - simpler than Flask, faster than FastAPI"
 readme = "README.md"
 authors = [
@@ -83,7 +83,9 @@ full = [
 proapi = "proapi.core.cli:main"
 
 [tool.setuptools]
-packages = ["proapi"]
+packages = ["proapi", "proapi.core", "proapi.auth", "proapi.server", "proapi.templates", 
+            "proapi.routing", "proapi.session", "proapi.utils", "proapi.performance", 
+            "proapi.websocket", "proapi.cython_ext"]
 include-package-data = true
 zip-safe = false
 

@@ -668,12 +668,21 @@ def create_server(app, host, port, server_type=None, workers=1, use_reloader=Fal
                                 # Use raw string to avoid escape sequence issues
                                 app_dir_escaped = app_dir.replace("\\", "\\\\")
                                 f.write(f"""
-# Import the app initialization function
-from proapi.server.asgi_app import init_app, __call__
-
-# Add the app directory to sys.path
+# Add the app directory to sys.path first
 import sys
 sys.path.insert(0, "{app_dir_escaped}")
+
+# Define the app variable first to avoid circular imports
+app = None
+
+# Import the app initialization function
+from proapi.server.asgi_app import __call__
+
+# Import the module directly
+import {module_name}
+
+# Import the initialization function after the module is loaded
+from proapi.server.asgi_app import init_app
 
 # Initialize the app
 init_app("{module_name}", "{app_var}")

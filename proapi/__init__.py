@@ -20,7 +20,7 @@ Example:
 import sys
 
 # Version information
-__version__ = "0.4.3"
+__version__ = "0.4.4"
 
 # Check Python version
 if sys.version_info < (3, 8):

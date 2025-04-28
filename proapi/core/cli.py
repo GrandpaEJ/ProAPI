@@ -280,33 +280,33 @@ def version_command():
 
     try:
         import cython
-        print(f"✓ Cython: {cython.__version__}")
+        print(f"[+] Cython: {cython.__version__}")
     except ImportError:
-        print("✗ Cython: Not installed (required for compilation)")
+        print("[-] Cython: Not installed (required for compilation)")
 
     try:
         import cloudflared
-        print(f"✓ Cloudflared: {getattr(cloudflared, '__version__', 'Unknown')}")
+        print(f"[+] Cloudflared: {getattr(cloudflared, '__version__', 'Unknown')}")
     except ImportError:
-        print("✗ Cloudflared: Not installed (required for port forwarding)")
+        print("[-] Cloudflared: Not installed (required for port forwarding)")
 
     try:
         import uvicorn
-        print(f"✓ Uvicorn: {uvicorn.__version__}")
+        print(f"[+] Uvicorn: {uvicorn.__version__}")
     except ImportError:
-        print("✗ Uvicorn: Not installed (required for server)")
+        print("[-] Uvicorn: Not installed (required for server)")
 
     try:
         import jinja2
-        print(f"✓ Jinja2: {jinja2.__version__}")
+        print(f"[+] Jinja2: {jinja2.__version__}")
     except ImportError:
-        print("✗ Jinja2: Not installed (required for templating)")
+        print("[-] Jinja2: Not installed (required for templating)")
 
     try:
         import loguru
-        print(f"✓ Loguru: {loguru.__version__}")
+        print(f"[+] Loguru: {loguru.__version__}")
     except ImportError:
-        print("✗ Loguru: Not installed (required for logging)")
+        print("[-] Loguru: Not installed (required for logging)")
 
     print("\nFor more information, visit: https://github.com/GrandpaEJ/ProAPI")
 

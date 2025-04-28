@@ -196,7 +196,11 @@ def set_app(proapi_app):
         proapi_app: ProAPI application
     """
     global app
-    app = ASGIAdapter(proapi_app)
+    # Check if proapi_app is None, which might happen during circular imports
+    if proapi_app is not None:
+        app = ASGIAdapter(proapi_app)
+    else:
+        print("Warning: Attempted to set app with None value. This might be due to a circular import.")
 
 # Define a module-level __call__ function for uvicorn to use
 async def __call__(scope, receive, send):
