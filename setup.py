@@ -1,4 +1,15 @@
 
+import os, sysconfig
+
+# Use zig cc as the C compiler
+os.environ.setdefault('CC', 'zig cc')
+# zig's LLD doesn't support --exclude-libs; strip it from linker flags
+for var in ('LDFLAGS', 'LDSHARED'):
+    val = sysconfig.get_config_var(var)
+    if val:
+        cleaned = ' '.join(a for a in val.split() if '--exclude-libs' not in a)
+        os.environ[var] = cleaned
+
 from setuptools import setup, Extension, find_packages
 
 m1 = Extension(
@@ -25,10 +36,10 @@ m1 = Extension(
       './src/mrhttp/utils/unpack.c',
      ],
      include_dirs = ['./src/mrhttp/internals','./src/mrhttp/utils'],
-     extra_compile_args = ['-msse4.2', '-mavx2', '-mbmi2', '-Wunused-variable','-std=gnu99','-Wno-discarded-qualifiers', '-Wno-unused-variable','-Wno-unused-function'],
+     extra_compile_args = ['-O3', '-march=native', '-msse4.2', '-mavx2', '-mbmi2', '-Wunused-variable','-std=gnu99','-Wno-discarded-qualifiers', '-Wno-unused-variable','-Wno-unused-function'],
      extra_link_args = [],
      #extra_link_args = ['-lasan'],
-     define_macros = [('DEBUG_PRINT',1)]
+     define_macros = []
 )
 
 setup(
