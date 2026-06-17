@@ -24,12 +24,12 @@ PyObject* pack    (PyObject* self, PyObject *args, PyObject *kwargs);
 PyObject* unpack  (PyObject* self, PyObject *args, PyObject *kwargs);
 
 static PyMethodDef mod_methods[] = {
-  {"randint",   (PyCFunction)myrandint,           METH_VARARGS, "Generate a random integer in the interval [0,range]"},
-  {"escape",    (PyCFunction)escape_html,          METH_O,       "Escape <>&\" from a string" },
-  {"to64",      (PyCFunction)to64,                 METH_O,       "Number to base64 string"    },
-  {"from64",    (PyCFunction)from64,               METH_O,       "Base64 string to number"    },
-  {"timesince", (PyCFunction)timesince,            METH_O,       "Timestamp difference as string"},
-  {"hot",       (PyCFunction)hot,                  METH_VARARGS, "Chatt1r's hot algorithm"    },
+  {"randint",   (PyCFunction)myrandint,              METH_VARARGS, "Generate a random integer in the interval [0,range]"},
+  {"escape",    (PyCFunction)escape_html,             METH_O,       "Escape <>&\" from a string" },
+  {"to64",      (PyCFunction)to64,                    METH_O,       "Number to base64 string"    },
+  {"from64",    (PyCFunction)from64,                  METH_O,       "Base64 string to number"    },
+  {"timesince", (PyCFunction)timesince,               METH_O,       "Timestamp difference as string"},
+  {"hot",       (PyCFunction)hot,                     METH_VARARGS, "Chatt1r's hot algorithm"    },
   {"pack",      (PyCFunction)pack,   METH_VARARGS | METH_KEYWORDS, "Pack an object into mrpacker binary format"},
   {"unpack",    (PyCFunction)unpack, METH_VARARGS | METH_KEYWORDS, "Unpack an object from mrpacker binary format"},
   {NULL}

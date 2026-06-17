@@ -5,6 +5,8 @@
 /*
  * ProAPI — based on mrhttp (https://github.com/MarkReedZ/mrhttp)
  * Original C engine and SIMD parsers by Mark Reed.
+ * mrpacker (https://github.com/MarkReedZ/mrpacker) merged as native component.
+ * mrjson (https://github.com/MarkReedZ/mrjson) vendored as proapi._mrjson.
  */
 
 #define PROXY(attr) \
@@ -93,7 +95,7 @@ PyInit_internals(void)
   PyModule_AddObject(m, "MrcacheProtocol", (PyObject*)&MrcacheProtocolType);
 
   PyModule_AddStringConstant(m, "__version__", "1.0.0");
-  PyModule_AddStringConstant(m, "__author__", "Based on mrhttp by Mark Reed & mrpacker by Mark Reed");
+  PyModule_AddStringConstant(m, "__author__", "Based on mrhttp by Mark Reed");
 
   return m;
 }

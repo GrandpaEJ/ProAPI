@@ -15,3 +15,4 @@ gbench/string
 gbench/query
 .DS_Store
 __pycache__
+explain.md

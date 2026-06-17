@@ -28,8 +28,22 @@ m1 = Extension(
      include_dirs = ['./src/proapi/internals'],
      extra_compile_args = ['-O3', '-march=native', '-msse4.2', '-mavx2', '-mbmi2', '-Wunused-variable','-std=gnu99','-Wno-discarded-qualifiers', '-Wno-unused-variable','-Wno-unused-function'],
      extra_link_args = [],
-     #extra_link_args = ['-lasan'],
      define_macros = []
+)
+
+# mrjson — vendored as proapi._mrjson
+mrjson_ext = Extension(
+    'proapi._mrjson',
+    sources = [
+      './src/proapi/_vendor/mrjson/module.c',
+      './src/proapi/_vendor/mrjson/dec.c',
+      './src/proapi/_vendor/mrjson/enc.c',
+      './src/proapi/_vendor/mrjson/dconv.cc',
+    ],
+    include_dirs = ['./src/proapi/_vendor/mrjson'],
+    extra_compile_args = ['-O3', '-march=native', '-mavx2', '-std=c99'],
+    extra_link_args = ['-lstdc++', '-lm'],
+    define_macros = [('MRJSON_VERSION', '"1.4"')]
 )
 
 setup(
@@ -39,7 +53,7 @@ setup(
   description='Async Python web server with SIMD-accelerated C core',
   long_description=open('README.md').read(),
   long_description_content_type='text/markdown',
-  ext_modules = [m1],
+  ext_modules = [m1, mrjson_ext],
   package_dir={'':'src'},
   packages=find_packages('src'),
   install_requires=[
