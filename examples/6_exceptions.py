@@ -1,6 +1,6 @@
-import mrhttp
+import proapi
 
-app = mrhttp.Application()
+app = proapi.Application()
 
 @app.route('/404/')
 def not_found(r):

@@ -7,9 +7,9 @@
 #
 
 import http.cookies
-import mrhttp
+import proapi
 
-app = mrhttp.Application()
+app = proapi.Application()
 app.config["memcache"] = [ ("127.0.0.1", 11211) ]
 #app.config["mrq"] = [ ("127.0.0.1", 7100) ]
 #app.config["mrcache"] = [ ("127.0.0.1", 7000) ]

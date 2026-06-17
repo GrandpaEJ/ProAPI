@@ -3,7 +3,7 @@ import asyncio
 
 # TODO The idea here is to test some bad requests.  Not used yet
 
-from mrhttp import app
+from proapi import app
 
 lines = []
 

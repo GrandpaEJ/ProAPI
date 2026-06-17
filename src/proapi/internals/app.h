@@ -49,19 +49,19 @@ typedef struct {
 
   tSessionClientGet session_get;
 
-} MrhttpApp;
+} ProAPIApp;
 
-PyObject *MrhttpApp_new    (PyTypeObject* self, PyObject *args, PyObject *kwargs);
-int       MrhttpApp_init   (MrhttpApp* self,    PyObject *args, PyObject *kwargs);
-void      MrhttpApp_dealloc(MrhttpApp* self);
+PyObject *ProAPIApp_new    (PyTypeObject* self, PyObject *args, PyObject *kwargs);
+int       ProAPIApp_init   (ProAPIApp* self,    PyObject *args, PyObject *kwargs);
+void      ProAPIApp_dealloc(ProAPIApp* self);
 
-PyObject *MrhttpApp_cinit(MrhttpApp* self);
+PyObject *ProAPIApp_cinit(ProAPIApp* self);
 
-void MrhttpApp_release_request(MrhttpApp* self, Request *r);
-PyObject *MrhttpApp_get_request(MrhttpApp* self);
+void ProAPIApp_release_request(ProAPIApp* self, Request *r);
+PyObject *ProAPIApp_get_request(ProAPIApp* self);
 
-PyObject *MrhttpApp_updateDate(MrhttpApp *self, PyObject *date);
-PyObject *MrhttpApp_check_idle(MrhttpApp *self);
-PyObject *MrhttpApp_test_fut(MrhttpApp *self);
+PyObject *ProAPIApp_updateDate(ProAPIApp *self, PyObject *date);
+PyObject *ProAPIApp_check_idle(ProAPIApp *self);
+PyObject *ProAPIApp_test_fut(ProAPIApp *self);
 
-void MrhttpApp_setup_error_pages(MrhttpApp* self);
+void ProAPIApp_setup_error_pages(ProAPIApp* self);

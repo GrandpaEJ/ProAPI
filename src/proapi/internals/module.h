@@ -77,19 +77,19 @@ static PyMethodDef Router_methods[] = {
   {"update_cached_route", (PyCFunction)Router_update_cached_route, METH_O,   ""},
   {NULL}
 };
-static PyMethodDef MrhttpApp_methods[] = {
-  {"cinit",      (PyCFunction)MrhttpApp_cinit,       METH_NOARGS,  ""},
-  {"updateDate", (PyCFunction)MrhttpApp_updateDate,  METH_O,       ""},
-  {"check_idle", (PyCFunction)MrhttpApp_check_idle,  METH_NOARGS,  ""},
+static PyMethodDef ProAPIApp_methods[] = {
+  {"cinit",      (PyCFunction)ProAPIApp_cinit,       METH_NOARGS,  ""},
+  {"updateDate", (PyCFunction)ProAPIApp_updateDate,  METH_O,       ""},
+  {"check_idle", (PyCFunction)ProAPIApp_check_idle,  METH_NOARGS,  ""},
   {NULL}
 };
-static PyMemberDef MrhttpApp_members[] = {
-    {"_mc", T_OBJECT, offsetof(MrhttpApp, py_mc), 0, NULL},
-    {"_mrq", T_OBJECT, offsetof(MrhttpApp, py_mrq), 0, NULL},
-    {"_mrq2", T_OBJECT, offsetof(MrhttpApp, py_mrq2), 0, NULL},
-    {"_redis", T_OBJECT, offsetof(MrhttpApp, py_redis), 0, NULL},
-    {"_session_client", T_OBJECT, offsetof(MrhttpApp, py_session), 0, NULL},
-    {"session_backend_type", T_OBJECT, offsetof(MrhttpApp, py_session_backend_type), 0, NULL},
+static PyMemberDef ProAPIApp_members[] = {
+    {"_mc", T_OBJECT, offsetof(ProAPIApp, py_mc), 0, NULL},
+    {"_mrq", T_OBJECT, offsetof(ProAPIApp, py_mrq), 0, NULL},
+    {"_mrq2", T_OBJECT, offsetof(ProAPIApp, py_mrq2), 0, NULL},
+    {"_redis", T_OBJECT, offsetof(ProAPIApp, py_redis), 0, NULL},
+    {"_session_client", T_OBJECT, offsetof(ProAPIApp, py_session), 0, NULL},
+    {"session_backend_type", T_OBJECT, offsetof(ProAPIApp, py_session_backend_type), 0, NULL},
     {NULL},
 };
 static PyMethodDef MrqClient_methods[] = {
@@ -152,12 +152,12 @@ static PyGetSetDef Response_getset[] = {
   {NULL}
 };
 
-static PyTypeObject MrhttpAppType = {
+static PyTypeObject ProAPIAppType = {
   PyVarObject_HEAD_INIT(NULL, 0)
-  "internals.MrhttpApp",       /* tp_name */
-  sizeof(MrhttpApp),          /* tp_basicsize */
+  "internals.ProAPIApp",       /* tp_name */
+  sizeof(ProAPIApp),          /* tp_basicsize */
   0,                         /* tp_itemsize */
-  (destructor)MrhttpApp_dealloc, /* tp_dealloc */
+  (destructor)ProAPIApp_dealloc, /* tp_dealloc */
   0,                         /* tp_print */
   0,                         /* tp_getattr */
   0,                         /* tp_setattr */
@@ -173,24 +173,24 @@ static PyTypeObject MrhttpAppType = {
   0,                         /* tp_setattro */
   0,                         /* tp_as_buffer */
   Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,        /* tp_flags */
-  "MrhttpApp",                /* tp_doc */
+  "ProAPIApp",                /* tp_doc */
   0,                         /* tp_traverse */
   0,                         /* tp_clear */
   0,                         /* tp_richcompare */
   0,                         /* tp_weaklistoffset */
   0,                         /* tp_iter */
   0,                         /* tp_iternext */
-  MrhttpApp_methods,         /* tp_methods */
-  MrhttpApp_members,         /* tp_members */
+  ProAPIApp_methods,         /* tp_methods */
+  ProAPIApp_members,         /* tp_members */
   0,            /* tp_getset */
   0,                         /* tp_base */
   0,                         /* tp_dict */
   0,                         /* tp_descr_get */
   0,                         /* tp_descr_set */
   0,                         /* tp_dictoffset */
-  (initproc)MrhttpApp_init,    /* tp_init */
+  (initproc)ProAPIApp_init,    /* tp_init */
   0,                         /* tp_alloc */
-  MrhttpApp_new,              /* tp_new */
+  ProAPIApp_new,              /* tp_new */
 };
 
 static PyTypeObject RouterType = {

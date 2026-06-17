@@ -7,7 +7,7 @@
 import asyncio
 
 def setup(loop):
-  from mrhttp import app
+  from proapi import app
 
   @app.route('/')
   async def index(r):

@@ -52,7 +52,7 @@ PyInit_internals(void)
   if (PyType_Ready(&ProtocolType) < 0) return NULL;
   if (PyType_Ready(&RequestType) < 0) return NULL;
   if (PyType_Ready(&RouterType) < 0) return NULL;
-  if (PyType_Ready(&MrhttpAppType) < 0) return NULL;
+  if (PyType_Ready(&ProAPIAppType) < 0) return NULL;
   if (PyType_Ready(&MemcachedClientType) < 0) return NULL;
   if (PyType_Ready(&MrqClientType) < 0) return NULL;
   if (PyType_Ready(&MrcacheClientType) < 0) return NULL;
@@ -70,8 +70,8 @@ PyInit_internals(void)
   PyModule_AddObject(m, "Request", (PyObject*)&RequestType);
   Py_INCREF(&RouterType);
   PyModule_AddObject(m, "Router", (PyObject*)&RouterType);
-  Py_INCREF(&MrhttpAppType);
-  PyModule_AddObject(m, "MrhttpApp", (PyObject*)&MrhttpAppType);
+  Py_INCREF(&ProAPIAppType);
+  PyModule_AddObject(m, "ProAPIApp", (PyObject*)&ProAPIAppType);
   Py_INCREF(&ResponseType);
   PyModule_AddObject(m, "Response", (PyObject*)&ResponseType);
   Py_INCREF(&MemcachedClientType);

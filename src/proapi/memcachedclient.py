@@ -2,38 +2,48 @@
 import asyncio
 import socket
 import os
-from mrhttp import MrcacheProtocol
-import mrhttp
+from proapi import MemcachedProtocol
+import proapi
 
-class MrcacheServer():
-  def __init__(self, host, port):
+class MemcachedServer():
+  def __init__(self, host, port, pool_size=2):
     self.host = host
     self.port = port
+    self.pool_size = 2
     self.num_connections = 0
     self.reconnecting = False
     self.reconnect_attempts = 0
 
-class MrcacheClient(mrhttp.CMrcacheClient):
-  def __init__(self, servers, loop, pool_size=1):
+class MemcachedClient(proapi.CMemcachedClient):
+  def __init__(self, servers, loop, pool_size=2):
 
     if not isinstance(servers, list):
-      raise ValueError("Mrcache client takes a list of (host, port) servers")
+      raise ValueError("Memcached client takes a list of (host, port) servers")
 
     super().__init__(len(servers))
     self.loop = loop
     self.servers = []
     for s in servers:
-      self.servers.append( MrcacheServer(s[0], s[1]) )
+      self.servers.append( MemcachedServer(s[0], s[1], pool_size) )
+
+  # TODO conn timeout?
+ #fut = asyncio.open_connection(host[1], 443, ssl=True)
+        #try:
+            ## Wait for 3 seconds, then raise TimeoutError
+            #reader, writer = yield from asyncio.wait_for(fut, timeout=3)
+        #except asyncio.TimeoutError:
+            #print("Timeout, skipping {}".format(host[1]))
+            #continue
 
     try:
       snum = 0
       for s in self.servers:
         for c in range(pool_size):
-          coro = loop.create_connection(lambda: MrcacheProtocol(self,snum), s.host, s.port)
+          coro = loop.create_connection(lambda: MemcachedProtocol(self,snum), s.host, s.port)
           loop.run_until_complete(coro)
         snum += 1
     except ConnectionRefusedError:
-      print("Could not connect to the mrcache server(s)")
+      print("Could not connect to the memcached server(s)")
       exit(1)
     except Exception as e:
       print(e)
@@ -43,7 +53,7 @@ class MrcacheClient(mrhttp.CMrcacheClient):
     s = self.servers[srv]
     while True:
       try:
-        await self.loop.create_connection(lambda: MrcacheProtocol(self,srv), s.host, s.port)
+        await self.loop.create_connection(lambda: MemcachedProtocol(self,srv), s.host, s.port)
         s.num_connections += 1
         s.reconnect_attempts = 0
         s.reconnecting = False  #TODO make sure open pool size number of conns

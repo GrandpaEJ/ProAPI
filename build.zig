@@ -18,24 +18,24 @@ pub fn build(b: *std.Build) void {
 
     mod.addCSourceFiles(.{
         .files = &.{
-            "src/mrhttp/internals/module.c",
-            "src/mrhttp/internals/utils.c",
-            "src/mrhttp/internals/app.c",
-            "src/mrhttp/internals/protocol.c",
-            "src/mrhttp/internals/mrqprotocol.c",
-            "src/mrhttp/internals/mrqclient.c",
-            "src/mrhttp/internals/memcachedclient.c",
-            "src/mrhttp/internals/memprotocol.c",
-            "src/mrhttp/internals/mrcacheclient.c",
-            "src/mrhttp/internals/mrcacheprotocol.c",
-            "src/mrhttp/internals/parser.c",
-            "src/mrhttp/internals/request.c",
-            "src/mrhttp/internals/response.c",
-            "src/mrhttp/internals/router.c",
-            "src/mrhttp/internals/mrhttpparser.c",
-            "src/mrhttp/internals/hash/city.c",
-            "src/mrhttp/internals/hash/assoc.c",
-            "src/mrhttp/utils/unpack.c",
+            "src/proapi/internals/module.c",
+            "src/proapi/internals/utils.c",
+            "src/proapi/internals/app.c",
+            "src/proapi/internals/protocol.c",
+            "src/proapi/internals/mrqprotocol.c",
+            "src/proapi/internals/mrqclient.c",
+            "src/proapi/internals/memcachedclient.c",
+            "src/proapi/internals/memprotocol.c",
+            "src/proapi/internals/mrcacheclient.c",
+            "src/proapi/internals/mrcacheprotocol.c",
+            "src/proapi/internals/parser.c",
+            "src/proapi/internals/request.c",
+            "src/proapi/internals/response.c",
+            "src/proapi/internals/router.c",
+            "src/proapi/internals/proapiparser.c",
+            "src/proapi/internals/hash/city.c",
+            "src/proapi/internals/hash/assoc.c",
+            "src/proapi/utils/unpack.c",
         },
         .flags = &.{
             "-std=gnu99", "-msse4.2", "-mavx2", "-mbmi2",
@@ -43,8 +43,8 @@ pub fn build(b: *std.Build) void {
         },
     });
 
-    mod.addIncludePath(b.path("src/mrhttp/internals"));
-    mod.addIncludePath(b.path("src/mrhttp/utils"));
+    mod.addIncludePath(b.path("src/proapi/internals"));
+    mod.addIncludePath(b.path("src/proapi/utils"));
     mod.addIncludePath(.{ .cwd_relative = python_inc });
 
     mod.addLibraryPath(.{ .cwd_relative = python_lib });
@@ -61,7 +61,7 @@ pub fn build(b: *std.Build) void {
     });
 
     const ext_suffix = ".cpython-314-x86_64-linux-gnu.so";
-    const out_name = b.fmt("src/mrhttp/internals{s}", .{ext_suffix});
+    const out_name = b.fmt("src/proapi/internals{s}", .{ext_suffix});
     const install = b.addInstallFile(lib.getEmittedBin(), out_name);
     b.default_step.dependOn(&install.step);
 }

@@ -86,7 +86,7 @@ int Protocol_init(Protocol* self, PyObject *args, PyObject *kw)
   if(!PyArg_ParseTuple(args, "O", &self->app)) return -1;
   Py_INCREF(self->app);
 
-  self->request = (Request*)MrhttpApp_get_request( self->app );
+  self->request = (Request*)ProAPIApp_get_request( self->app );
   //if(!(self->request  = (Request*) PyObject_GetAttrString((PyObject*)self->app, "request" ))) return -1;
   //if(!(self->response = (Response*)PyObject_GetAttrString((PyObject*)self->app, "response"))) return -1;
   if(!(self->router   = (Router*)  PyObject_GetAttrString((PyObject*)self->app, "router"  ))) return -1;
@@ -150,7 +150,7 @@ PyObject* Protocol_connection_lost(Protocol* self, PyObject* args)
 {
   DBG printf("conn lost %p\n",self);
   self->closed = true;
-  MrhttpApp_release_request( self->app, self->request );
+  ProAPIApp_release_request( self->app, self->request );
 
   PyObject* connections = NULL;
 
@@ -474,7 +474,7 @@ Protocol* Protocol_on_body(Protocol* self, char* body, size_t body_len) {
         return self;
       }
       // Get a new request object so we don't overwrite this one while waiting for the reply
-      self->request = (Request*)MrhttpApp_get_request( self->app );
+      self->request = (Request*)ProAPIApp_get_request( self->app );
       return self;
     }
 
@@ -522,7 +522,7 @@ Protocol* Protocol_handle_request(Protocol* self, Request* request, Route* r) {
     //self->gather.enabled = false;
     // If we can't finish now save this request by grabbing a new free request if we haven't already done so
     // TODO what if all request objects are busy
-    if ( self->request == request ) self->request = (Request*)MrhttpApp_get_request( self->app );
+    if ( self->request == request ) self->request = (Request*)ProAPIApp_get_request( self->app );
   }
 
   //if ( r->dyncache ) { // Lookup path in dict
@@ -706,7 +706,7 @@ static inline Protocol* protocol_write_response(Protocol* self, Request *req, Py
   Py_DECREF(o);
   Py_DECREF(bytes);
 
-  if ( req != self->request ) MrhttpApp_release_request( self->app, req );
+  if ( req != self->request ) ProAPIApp_release_request( self->app, req );
   else                        Request_reset(req);
   return self;
 }
@@ -760,7 +760,7 @@ static void* protocol_pipeline_ready(Protocol* self, PipelineRequest r)
         DBG printf("    connection closed so dropping exception\n");
         PyErr_Clear();
         self->num_requests_popped++; 
-        if ( request != self->request ) MrhttpApp_release_request( self->app, request );
+        if ( request != self->request ) ProAPIApp_release_request( self->app, request );
         return self;
       }
 
@@ -780,7 +780,7 @@ static void* protocol_pipeline_ready(Protocol* self, PipelineRequest r)
           PyObject *reason = PyObject_GetAttrString(value, "reason");
           Py_DECREF(value);
           PyErr_Clear();
-          if ( request != self->request ) MrhttpApp_release_request( self->app, request );
+          if ( request != self->request ) ProAPIApp_release_request( self->app, request );
           if(!protocol_write_error_response(self, code, PyUnicode_AsUTF8(reason), PyUnicode_AsUTF8(msg))) return NULL;
           return self;
         }
@@ -790,7 +790,7 @@ static void* protocol_pipeline_ready(Protocol* self, PipelineRequest r)
           int code = PyLong_AsLong(PyObject_GetAttrString(value, "code"));
           Py_DECREF(value);
           PyErr_Clear();
-          if ( request != self->request ) MrhttpApp_release_request( self->app, request );
+          if ( request != self->request ) ProAPIApp_release_request( self->app, request );
           if(!protocol_write_redirect_response(self, code, PyUnicode_AsUTF8(msg))) return NULL;
           return self;
         }
@@ -804,7 +804,7 @@ static void* protocol_pipeline_ready(Protocol* self, PipelineRequest r)
       PyObject_Print( value, stdout, 0 ); printf("\n");
  
       self->num_requests_popped++; 
-      if ( request != self->request ) MrhttpApp_release_request( self->app, request );
+      if ( request != self->request ) ProAPIApp_release_request( self->app, request );
       protocol_write_error_response(self, 500,"Internal Server Error","The server encountered an unexpected condition which prevented it from fulfilling the request.");
       return self;
     }
@@ -823,7 +823,7 @@ static void* protocol_pipeline_ready(Protocol* self, PipelineRequest r)
 
   //if ( !PyUnicode_Check( response ) ) {
   if ( !( PyUnicode_Check( response ) || PyBytes_Check( response ) ) ) {
-    if ( request != self->request ) MrhttpApp_release_request( self->app, request );
+    if ( request != self->request ) ProAPIApp_release_request( self->app, request );
 
     protocol_write_error_response(self, 500,"Internal Server Error","The server encountered an unexpected condition which prevented it from fulfilling the request.");
     if ( PyCoro_CheckExact( response ) ) {

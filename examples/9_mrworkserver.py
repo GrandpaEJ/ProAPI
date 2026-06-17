@@ -3,7 +3,7 @@
 #
 # What is this?
 #
-# Json is posted to mrhttp and forwarded to a mrworkserver cluster using C code.  This is much faster than doing it using python
+# Json is posted to proapi and forwarded to a mrworkserver cluster using C code.  This is much faster than doing it using python
 # in the page handler.
 #
 # Why do this?
@@ -38,10 +38,10 @@
 # Use the session key that was output:
 #   curl -v http://localhost:8080/sq2/ -H "Cookie: mrsession=AeexlGcHq_dFZd6pJnvjgqu3NhrAS4qu;" -H "Content-Type: application/mrpacker" --data-binary @tests/lua/test.mrp 
 
-import mrhttp
+import proapi
 import mrjson as json
 
-app = mrhttp.Application()
+app = proapi.Application()
 app.config["memcache"] = [ ("127.0.0.1", 11211) ]
 
 # We setup 2 clusters of 1 server each

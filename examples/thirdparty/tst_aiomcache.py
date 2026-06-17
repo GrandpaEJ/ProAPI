@@ -2,11 +2,11 @@
 # curl -i --raw http://localhost:8080/mc -H "Cookie: foo=bar;"
 
 
-import mrhttp
+import proapi
 import asyncio
 import aiomcache
 
-app = mrhttp.Application()
+app = proapi.Application()
 
 @app.on('at_start')
 async def dbsetup():

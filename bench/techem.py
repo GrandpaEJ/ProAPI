@@ -1,10 +1,10 @@
 import multiprocessing
-import mrhttp
+import proapi
 import mrjson as json
 import asyncpg
 import random, os
 
-app = mrhttp.Application()
+app = proapi.Application()
 
 @app.on('at_start')
 async def dbsetup():

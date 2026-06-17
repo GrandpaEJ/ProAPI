@@ -20,7 +20,7 @@ typedef struct {
 
 struct Protocol {
   PyObject_HEAD
-  MrhttpApp* app;
+  ProAPIApp* app;
   bool closed;
 
   PyObject* transport;

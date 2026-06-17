@@ -1,5 +1,5 @@
 
-from mrhttp import app
+from proapi import app
 
 app.err404 = "My 404 page"
 

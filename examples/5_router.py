@@ -1,6 +1,6 @@
-import mrhttp, asyncio
+import proapi, asyncio
 
-app = mrhttp.Application()
+app = proapi.Application()
 
 @app.route('/')
 def hello(r):

@@ -1,6 +1,6 @@
-from mrhttp import Application
-from mrhttp import Request
-import mrhttp
+from proapi import Application
+from proapi import Request
+import proapi
 import socket
 
 app = Application()
@@ -12,7 +12,7 @@ def foo():
 #@app.route('/',options=['session'])
 @app.route('/')
 def hello():
-  raise mrhttp.HTTPRedirect("/foo")
+  raise proapi.HTTPRedirect("/foo")
   return 'Hello World!'
 
 app.run(debug=True, cores=1)

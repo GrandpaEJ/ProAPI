@@ -1,9 +1,9 @@
 
-import mrhttp
+import proapi
 import json
 import asyncio
 
-app = mrhttp.Application()
+app = proapi.Application()
 
 @app.route('/json', _type="json")
 def j(r):

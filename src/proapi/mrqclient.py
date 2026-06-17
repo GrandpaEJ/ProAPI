@@ -1,7 +1,7 @@
 
 import asyncio
 import os
-import mrhttp, mrpacker
+import proapi, mrpacker
 
 
 #TODO
@@ -21,7 +21,7 @@ class MrqServer():
     self.q = asyncio.Queue( )
     
        
-class MrqClient(mrhttp.CMrqClient):
+class MrqClient(proapi.CMrqClient):
   def __init__(self, servers, loop, pool_size=2):
 
     if not isinstance(servers, list):
@@ -38,7 +38,7 @@ class MrqClient(mrhttp.CMrqClient):
       snum = 0
       for s in self.servers:
         for c in range(pool_size):
-          coro = loop.create_connection(lambda: mrhttp.MrqProtocol(self,snum,s.q), s.host, s.port)
+          coro = loop.create_connection(lambda: proapi.MrqProtocol(self,snum,s.q), s.host, s.port)
           loop.run_until_complete(coro)
           s.num_connections += 1
         snum += 1
@@ -54,7 +54,7 @@ class MrqClient(mrhttp.CMrqClient):
     s = self.servers[srv]
     #for c in range(pool_size):
     try:
-      await loop.create_connection(lambda: mrhttp.MrqProtocol(self,srv,s.q), s.host, s.port)
+      await loop.create_connection(lambda: proapi.MrqProtocol(self,srv,s.q), s.host, s.port)
     except ConnectionRefusedError:
       print("Could not connect to the MrQ server(s)")
       return False
@@ -68,7 +68,7 @@ class MrqClient(mrhttp.CMrqClient):
     s = self.servers[srv]
     while True:
       try:
-        await self.loop.create_connection(lambda: mrhttp.MrqProtocol(self,srv,s.q), s.host, s.port)
+        await self.loop.create_connection(lambda: proapi.MrqProtocol(self,srv,s.q), s.host, s.port)
         s.num_connections += 1
         s.reconnect_attempts = 0
         s.reconnecting = False  #TODO make sure open pool size number of conns

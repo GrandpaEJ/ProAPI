@@ -34,7 +34,7 @@ class HTTPError(MrhttpPyException):
   """Exception used to return an HTTP error code (4xx-5xx) to the client.
   See `RFC2616 <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4>`_
   Examples::
-      raise mrhttp.HTTPError(403)
+      raise proapi.HTTPError(403)
   """
 
   code     = None

@@ -1,8 +1,8 @@
-import mrhttp
+import proapi
 import http.cookies
 import mrpacker
 
-app = mrhttp.Application()
+app = proapi.Application()
 
 @app.route('/')
 def hello(r):
@@ -41,12 +41,12 @@ def mrp(r):
 
 @app.route('/301')
 def redirect301(r):
-  raise mrhttp.HTTPRedirect("/foo")
+  raise proapi.HTTPRedirect("/foo")
   return 'Hello World!'
 
 @app.route('/303')
 def redirect303(r):
-  raise mrhttp.HTTPRedirect("/foo", 303)
+  raise proapi.HTTPRedirect("/foo", 303)
   return 'Hello World!'
 
 

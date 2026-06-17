@@ -1,6 +1,6 @@
-from mrhttp import Application
-from mrhttp import Request
-import mrhttp
+from proapi import Application
+from proapi import Request
+import proapi
 import socket
 import mrjson as json
 
@@ -47,7 +47,7 @@ def testing(r):
 
 @app.route('/404/')
 def notFound(r):
-  raise mrhttp.HTTPError(404)
+  raise proapi.HTTPError(404)
 
 @app.route('/500/')
 def error500(r):
@@ -58,9 +58,9 @@ def error500(r):
 @app.route('/to64')
 def to64test(r):
  
-  if 'uHfE' != mrhttp.to64(1234567): return 'failed1'
-  if mrhttp.from64('uHfE') != 1234567: return 'failed2'
-  if '3mM' != mrhttp.to64(12345): return 'failed3'
+  if 'uHfE' != proapi.to64(1234567): return 'failed1'
+  if proapi.from64('uHfE') != 1234567: return 'failed2'
+  if '3mM' != proapi.to64(12345): return 'failed3'
   return 'ok'
 
 @app.route('/foo/{}')

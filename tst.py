@@ -1,6 +1,6 @@
 
 import traceback, mrjson
-from mrhttp import app
+from proapi import app
 
 @app.route('/',_type='text')
 def index(r):

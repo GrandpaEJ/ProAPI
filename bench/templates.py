@@ -1,7 +1,7 @@
 import multiprocessing
-from mrhttp import Application
-from mrhttp import Request
-import mrhttp
+from proapi import Application
+from proapi import Request
+import proapi
 import mrjson as json
 
 import tenjin

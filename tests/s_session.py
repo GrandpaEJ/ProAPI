@@ -1,4 +1,4 @@
-from mrhttp import app
+from proapi import app
 
 app.config["memcache"] = [ ("127.0.0.1", 11211) ]
 app.config["mrcache"] =  [("127.0.0.1", 7000 )]

@@ -1,11 +1,11 @@
 import multiprocessing
-import mrhttp
+import proapi
 import mrjson as json
 import asyncio
 import aiomysql
 import random, os
 
-app = mrhttp.Application()
+app = proapi.Application()
 
 @app.on('at_start')
 async def dbsetup():
@@ -29,7 +29,7 @@ def p(r):
 @app.route('/db', type="json")
 async def db(r):
   #id_ = int(random.random() * 500)
-  id_  = mrhttp.randint(0,500)
+  id_  = proapi.randint(0,500)
   #id_ = 1
   async with app.my_pool.acquire() as conn:
      async with conn.cursor() as cur:

@@ -44,9 +44,9 @@ Hello World Example
 
 ```python
 
-import mrhttp
+import proapi
 
-app = mrhttp.Application()
+app = proapi.Application()
 
 @app.route('/')
 def hello(r):
@@ -61,7 +61,7 @@ Installation
 
 ```
 sudo apt install python3-dev -y
-pip3 install mrhttp
+pip3 install proapi
 ```
 
 Building from source

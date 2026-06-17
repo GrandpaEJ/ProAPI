@@ -3,7 +3,7 @@ from .internals import Protocol
 from .internals import Request as CRequest
 from .internals import Response
 from .internals import Router as CRouter
-from .internals import MrhttpApp as CApp
+from .internals import ProAPIApp as CApp
 from .httputil import HTTPError, HTTPRedirect
 
 from .internals import MemcachedProtocol

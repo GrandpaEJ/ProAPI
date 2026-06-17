@@ -22,8 +22,8 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef mrhttpparser_h
-#define mrhttpparser_h
+#ifndef proapiparser_h
+#define proapiparser_h
 
 #include <sys/types.h>
 

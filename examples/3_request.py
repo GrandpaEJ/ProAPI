@@ -1,6 +1,6 @@
-import mrhttp
+import proapi
 
-app = mrhttp.Application()
+app = proapi.Application()
 
 @app.route('/')
 def hello(r):

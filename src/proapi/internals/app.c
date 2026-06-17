@@ -12,23 +12,23 @@
 #include "memcachedclient.h"
 #include "mrcacheclient.h"
 
-PyObject *MrhttpApp_new(PyTypeObject* type, PyObject *args, PyObject *kwargs) {
-  MrhttpApp* self = NULL;
-  self = (MrhttpApp*)type->tp_alloc(type, 0);
+PyObject *ProAPIApp_new(PyTypeObject* type, PyObject *args, PyObject *kwargs) {
+  ProAPIApp* self = NULL;
+  self = (ProAPIApp*)type->tp_alloc(type, 0);
   return (PyObject*)self;
 }
 
 
-void MrhttpApp_dealloc(MrhttpApp* self) {
+void ProAPIApp_dealloc(ProAPIApp* self) {
   Py_XDECREF( self->check_interval ); 
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-int MrhttpApp_init(MrhttpApp* self, PyObject *args, PyObject *kwargs) {
+int ProAPIApp_init(ProAPIApp* self, PyObject *args, PyObject *kwargs) {
   return 0;
 }
 
-PyObject *MrhttpApp_cinit(MrhttpApp* self) {
+PyObject *ProAPIApp_cinit(ProAPIApp* self) {
   srand(time(0)); // TODO seed utils.randint
   self->requests  = PyObject_GetAttrString((PyObject*)self, "requests");
   int l = PyList_Size(self->requests);
@@ -54,7 +54,7 @@ PyObject *MrhttpApp_cinit(MrhttpApp* self) {
 
   response_setupResponseBuffer();
 
-  MrhttpApp_setup_error_pages(self);
+  ProAPIApp_setup_error_pages(self);
 
   long t = PyLong_AsLong( self->py_session_backend_type );
   if      ( t == 1 ) self->session_get = (tSessionClientGet)&MemcachedClient_get;
@@ -70,7 +70,7 @@ error:
   return NULL;
 }
 
-void MrhttpApp_release_request(MrhttpApp* self, Request *r) {
+void ProAPIApp_release_request(ProAPIApp* self, Request *r) {
   if ( !(r->inprog) ) {
     Request *z = r+10000;
     z->inprog = false;
@@ -100,7 +100,7 @@ void MrhttpApp_release_request(MrhttpApp* self, Request *r) {
  */ 
 }
 
-void MrhttpApp_double_requests(MrhttpApp* self) {
+void ProAPIApp_double_requests(ProAPIApp* self) {
   PyObject *ret = PyObject_CallFunctionObjArgs(self->func_expand_requests, NULL);
     
   if ( ret == NULL ) { // TODO?
@@ -113,7 +113,7 @@ void MrhttpApp_double_requests(MrhttpApp* self) {
   //printf("dbl req list sz %d num %d\n", PyList_GET_SIZE(self->requests), self->numRequests);
 }
 
-PyObject *MrhttpApp_get_request(MrhttpApp* self) {
+PyObject *ProAPIApp_get_request(ProAPIApp* self) {
   Request *r = (Request*)PyList_GET_ITEM( self->requests, self->nextRequest );
   //printf("get %p\n", r);
   self->freeRequests--;
@@ -126,7 +126,7 @@ PyObject *MrhttpApp_get_request(MrhttpApp* self) {
     //printf("get req free %d num %d\n", self->freeRequests, self->numRequests); 
     // Double the number of requests if necessary
     if ( self->freeRequests < 10 ) {
-      MrhttpApp_double_requests(self);
+      ProAPIApp_double_requests(self);
     }
     // Loop until found a free request
     int cnt;
@@ -142,7 +142,7 @@ redo:
       r = (Request*)PyList_GET_ITEM( self->requests, self->nextRequest );
     }
     if ( cnt > self->numRequests ) {
-      MrhttpApp_double_requests(self);
+      ProAPIApp_double_requests(self);
       goto redo;
     }
   }
@@ -151,11 +151,11 @@ redo:
   return (PyObject*)r;
 }
 
-PyObject *MrhttpApp_updateDate(MrhttpApp *self, PyObject *date) {
+PyObject *ProAPIApp_updateDate(ProAPIApp *self, PyObject *date) {
   return response_updateDate(date);
 }
 
-PyObject *MrhttpApp_check_idle(MrhttpApp *self) {
+PyObject *ProAPIApp_check_idle(ProAPIApp *self) {
 
   PyObject* iterator = NULL;
   Protocol* c = NULL;
@@ -205,7 +205,7 @@ PyObject *MrhttpApp_check_idle(MrhttpApp *self) {
   Py_RETURN_NONE;
 }
 
-void MrhttpApp_setup_error_pages(MrhttpApp* self) {
+void ProAPIApp_setup_error_pages(ProAPIApp* self) {
   PyObject *u = PyObject_GetAttrString((PyObject*)self, "err404");
   if ( !u ) return;
 

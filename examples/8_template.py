@@ -1,6 +1,6 @@
 
 
-import mrhttp
+import proapi
 
 import tenjin
 tenjin.set_template_encoding('utf-8')
@@ -8,7 +8,7 @@ from tenjin.helpers import *
 engine = tenjin.Engine(path=['templates'])
 
 
-app = mrhttp.Application()
+app = proapi.Application()
 
 @app.route('/')
 def index(r):

@@ -19,15 +19,15 @@ import inspect, copy
 #from prof import profiler_start,profiler_stop
 import http.cookies
 
-import mrhttp
-from mrhttp import Protocol
-from mrhttp.request import Request
-from mrhttp import Response
-from mrhttp import router
+import proapi
+from proapi import Protocol
+from proapi.request import Request
+from proapi import Response
+from proapi import router
 
-from mrhttp import MemcachedClient
-from mrhttp import MrqClient
-from mrhttp import MrcacheClient
+from proapi import MemcachedClient
+from proapi import MrqClient
+from proapi import MrcacheClient
 try:
   import mrjson as json
 except ImportError:
@@ -45,7 +45,7 @@ signames = {
     int(v): v.name for k, v in signal.__dict__.items()
     if isinstance(v, signal.Signals)}
 
-class Application(mrhttp.CApp):
+class Application(proapi.CApp):
   _instance = None
   def __new__(cls, *args, **kwargs):
     if not cls._instance:
@@ -234,7 +234,7 @@ class Application(mrhttp.CApp):
 
       #sock.setsockopt(socket.SOL_SOCKET, socket.SO_OOBINLINE, 0) #TODO uvloop .9.1 sets this
 
-      #profiler_start(b"mrhttp.log")
+      #profiler_start(b"proapi.log")
 
       if not loop:
         try:
@@ -424,10 +424,10 @@ class Application(mrhttp.CApp):
     a = random.getrandbits(64)
     b = random.getrandbits(64)
     c = random.getrandbits(64)
-    k = mrhttp.to64(a) + mrhttp.to64(b) + mrhttp.to64(c)
+    k = proapi.to64(a) + proapi.to64(b) + proapi.to64(c)
     k = k[:32]
     while len(k) < 32:
-      k += mrhttp.to64( random.getrandbits(6) )
+      k += proapi.to64( random.getrandbits(6) )
 
     userk = ""
     if user_id:
@@ -435,10 +435,10 @@ class Application(mrhttp.CApp):
       if numbits == 0:
         numbits += 1
       while numbits > 0:
-        userk = mrhttp.to64( user_id & 0x1F ) + userk
+        userk = proapi.to64( user_id & 0x1F ) + userk
         user_id >>= 5
         numbits -= 5
-      userk = userk + mrhttp.to64( 0x20 | random.getrandbits(5) ) 
+      userk = userk + proapi.to64( 0x20 | random.getrandbits(5) ) 
     
     skey = userk + k[len(userk):]
 

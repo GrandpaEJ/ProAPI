@@ -2,7 +2,7 @@ import urllib.parse
 import time
 import encodings.idna
 import collections
-import mrhttp
+import proapi
 import mrpacker
 from email.message import EmailMessage
 try:
@@ -16,9 +16,9 @@ except:
 
 File = collections.namedtuple('File', ['type', 'body', 'name'])
 
-class Request(mrhttp.CRequest):
+class Request(proapi.CRequest):
 
-  response = mrhttp.Response()
+  response = proapi.Response()
   def __init__(self):
     super().__init__(self)
     self._ip = None

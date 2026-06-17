@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/mrhttp 
+      url: https://pypi.org/p/proapi 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
     if: startsWith(github.ref, 'refs/tags/v')  # only publish to PyPI on tag pushes

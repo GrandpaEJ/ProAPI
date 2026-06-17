@@ -1,9 +1,9 @@
 import dis
 import functools
 import types
-import mrhttp, asyncio, inspect
+import proapi, asyncio, inspect
 
-class Router(mrhttp.CRouter):
+class Router(proapi.CRouter):
 
   def __init__(self):
     self.routes = []
