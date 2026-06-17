@@ -454,11 +454,11 @@ class Application(proapi.CApp):
       if json:
         self._mc.set( skey, json.dumpb(user) )
       else:
-        self._mc.set( skey, mrpacker.pack(user) )
+        self._mc.set( skey, proapi.pack(user) )
     elif self.session_backend_type == 2: # MrWorkServer 
-      self._mrq.set( user_id, mrpacker.pack( [skey, user]) )
+      self._mrq.set( user_id, proapi.pack( [skey, user]) )
     elif self.session_backend_type == 3: # MrCache
-      self._mrc.set( skey, mrpacker.pack( user ) )
+      self._mrc.set( skey, proapi.pack( user ) )
 
     return skey
 

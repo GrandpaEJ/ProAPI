@@ -3,7 +3,7 @@ import time
 import encodings.idna
 import collections
 import proapi
-import mrpacker
+
 from email.message import EmailMessage
 try:
   import mrjson as json
@@ -91,7 +91,7 @@ class Request(proapi.CRequest):
 
   def set_usermrp(self, j):
     try:
-      self.user = mrpacker.unpack(j)
+      self.user = proapi.unpack(j)
     except:
       pass
   def set_user(self, j):

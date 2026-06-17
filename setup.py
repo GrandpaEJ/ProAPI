@@ -22,9 +22,10 @@ m1 = Extension(
       #'./src/proapi/cpp/cpptest.cpp'
       './src/proapi/internals/hash/city.c',
       './src/proapi/internals/hash/assoc.c',
-      './src/proapi/utils/unpack.c',
+      './src/proapi/internals/unpack.c',
+      './src/proapi/internals/mrpacker_pack.c',
      ],
-     include_dirs = ['./src/proapi/internals','./src/proapi/utils'],
+     include_dirs = ['./src/proapi/internals'],
      extra_compile_args = ['-O3', '-march=native', '-msse4.2', '-mavx2', '-mbmi2', '-Wunused-variable','-std=gnu99','-Wno-discarded-qualifiers', '-Wno-unused-variable','-Wno-unused-function'],
      extra_link_args = [],
      #extra_link_args = ['-lasan'],
@@ -43,6 +44,7 @@ setup(
   packages=find_packages('src'),
   install_requires=[
     'uvloop>0.9.0',
+    # mrpacker is built-in as a native component
   ],
   platforms='x86_64 Linux and macOS',
   url='https://github.com/GrandpaEJ/ProAPI',

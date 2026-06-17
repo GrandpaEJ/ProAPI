@@ -35,7 +35,8 @@ pub fn build(b: *std.Build) void {
             "src/proapi/internals/proapiparser.c",
             "src/proapi/internals/hash/city.c",
             "src/proapi/internals/hash/assoc.c",
-            "src/proapi/utils/unpack.c",
+            "src/proapi/internals/unpack.c",
+            "src/proapi/internals/mrpacker_pack.c",
         },
         .flags = &.{
             "-std=gnu99", "-msse4.2", "-mavx2", "-mbmi2",
@@ -44,7 +45,6 @@ pub fn build(b: *std.Build) void {
     });
 
     mod.addIncludePath(b.path("src/proapi/internals"));
-    mod.addIncludePath(b.path("src/proapi/utils"));
     mod.addIncludePath(.{ .cwd_relative = python_inc });
 
     mod.addLibraryPath(.{ .cwd_relative = python_lib });

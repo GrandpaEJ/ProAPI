@@ -1,7 +1,7 @@
 
 import asyncio
 import os
-import proapi, mrpacker
+import proapi
 
 
 #TODO
@@ -84,7 +84,7 @@ class MrqClient(proapi.CMrqClient):
 
 
   async def get(self, slot, o):
-    b = mrpacker.pack(o)
+    b = proapi.pack(o)
     srv = self._get(slot, b)
     if srv == None: return None
     return await self.servers[srv].q.get()

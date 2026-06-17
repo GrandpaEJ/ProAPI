@@ -92,6 +92,9 @@ PyInit_internals(void)
   Py_INCREF(&MrcacheProtocolType);
   PyModule_AddObject(m, "MrcacheProtocol", (PyObject*)&MrcacheProtocolType);
 
+  PyModule_AddStringConstant(m, "__version__", "1.0.0");
+  PyModule_AddStringConstant(m, "__author__", "Based on mrhttp by Mark Reed & mrpacker by Mark Reed");
+
   return m;
 }
 
