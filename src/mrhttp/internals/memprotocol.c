@@ -121,7 +121,7 @@ PyObject* MemcachedProtocol_data_received(MemcachedProtocol* self, PyObject* dat
     // No session found
     if ( p[0] == 'E' ) {
       p += 5;
-      tSessionCallback cb = self->queue[self->queue_start].cb;
+      tSessionCallback cb = *(tSessionCallback*)self->queue[self->queue_start].cb;
       cb(self->queue[self->queue_start].connection, NULL, 0);
       self->queue_start = (self->queue_start+1)%self->queue_sz;
     }
@@ -149,7 +149,7 @@ PyObject* MemcachedProtocol_data_received(MemcachedProtocol* self, PyObject* dat
 
       char *buf = malloc( vlen ); // TODO Use a preallocated buffer
       memcpy(buf, p, vlen);
-      tSessionCallback cb = self->queue[self->queue_start].cb;
+      tSessionCallback cb = *(tSessionCallback*)self->queue[self->queue_start].cb;
       cb(self->queue[self->queue_start].connection, buf, vlen);
       free(buf);
       self->queue_start = (self->queue_start+1)%self->queue_sz;

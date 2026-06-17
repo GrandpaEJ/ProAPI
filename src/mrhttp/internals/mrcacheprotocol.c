@@ -142,7 +142,7 @@ PyObject* MrcacheProtocol_data_received(MrcacheProtocol* self, PyObject* data)
       // No session found
       if ( sz == 0 ) {
         p += 4;
-        tSessionCallback cb = self->queue[self->queue_start].cb;
+        tSessionCallback cb = *(tSessionCallback*)self->queue[self->queue_start].cb;
         cb(self->queue[self->queue_start].connection, NULL, 0);
         self->queue_start = (self->queue_start+1)%self->queue_sz;
       }
@@ -159,7 +159,7 @@ PyObject* MrcacheProtocol_data_received(MrcacheProtocol* self, PyObject* data)
   
         char *buf = malloc( sz ); // TODO Use a preallocated buffer
         memcpy(buf, p, sz);
-        tSessionCallback cb = self->queue[self->queue_start].cb;
+        tSessionCallback cb = *(tSessionCallback*)self->queue[self->queue_start].cb;
         cb(self->queue[self->queue_start].connection, buf, sz);
         free(buf);
         self->queue_start = (self->queue_start+1)%self->queue_sz;

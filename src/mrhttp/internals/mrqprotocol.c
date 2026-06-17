@@ -230,7 +230,7 @@ PyObject* MrqProtocol_data_received(MrqProtocol* self, PyObject* data)
         if(!PyObject_CallFunctionObjArgs(self->pfunc, b, NULL)) { printf("WTF\n"); Py_XDECREF(b); return NULL; }
         Py_DECREF(b);
       } else {
-        tSessionCallback cb = self->queue[self->queue_start].cb;
+        tSessionCallback cb = *self->queue[self->queue_start].cb;
         cb(self->queue[self->queue_start].connection, p, len);
         self->queue_start = (self->queue_start+1)%self->queue_sz;
         p += len;
