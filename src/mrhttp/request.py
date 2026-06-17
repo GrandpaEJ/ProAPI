@@ -1,9 +1,10 @@
 import urllib.parse
-import cgi, time
+import time
 import encodings.idna
 import collections
 import mrhttp
 import mrpacker
+from email.message import EmailMessage
 try:
   import mrjson as json
 except:
@@ -28,7 +29,11 @@ class Request(mrhttp.CRequest):
     if not content_type: 
       content_type = self.headers.get('content-type')
       if not content_type: return None, {}
-    return cgi.parse_header(content_type)
+    m = EmailMessage()
+    m['content-type'] = content_type
+    params = dict(m.get_params())
+    params.pop(m.get_content_type(), None)
+    return m.get_content_type(), params
 
   @property
   def mime_type(self):
