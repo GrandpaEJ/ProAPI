@@ -245,7 +245,7 @@ static inline PyObject* parse_query_args( char *buf, size_t len ) {
   PyObject* args = PyDict_New();
   PyObject* key = NULL; PyObject* value = NULL;
 
-  if ( len == 0 ) return;
+  if ( len == 0 ) return args;
   //len = path_decode( buf, len, &ignore_me );
   char *buf_end = buf+len;
 
@@ -314,7 +314,7 @@ pdone:
 
 void request_decodePath(Request* self) {
   if(!self->path_decoded) {
-    self->path_len = path_decode( self->path, self->path_len, &(self->qs_len) );
+    self->path_len = path_decode( self->path, self->path_len, (int*)&(self->qs_len) );
     self->path_decoded = true;
   }
 }
