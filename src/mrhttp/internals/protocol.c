@@ -107,19 +107,7 @@ int Protocol_init(Protocol* self, PyObject *args, PyObject *kw)
 
 // copied from Modules/socketmodule.h
 // TODO uvloop 0.9+ returns their own socket here
-typedef int SOCKET_T;
-typedef struct {
-    PyObject_HEAD
-    int sock_family;            /* Address family, e.g., AF_INET */
-    int sock_type;              /* Socket type, e.g., SOCK_STREAM */
-    int sock_proto;             /* Protocol type, usually 0 */
-    SOCKET_T sock_fd;           /* Socket file descriptor */
-    PyObject *(*errorhandler)(void); /* Error handler; checks
-                                        errno, returns NULL and
-                                        sets a Python exception */
-    _PyTime_t sock_timeout;     /* Operation timeout in seconds;
-                                        0.0 means non-blocking */
-} PySocketSockObject;
+
 
 
 
@@ -177,7 +165,7 @@ PyObject* Protocol_data_received(Protocol* self, PyObject* data)
   DBG printf("protocol data recvd %zu\n", Py_SIZE(data));
 
   if(parser_data_received(&self->parser, data, self->request) == -1) {
-    return protocol_write_error_response_bytes(self, self->app->err400);
+    return (PyObject*)protocol_write_error_response_bytes(self, self->app->err400);
   }
 
   Py_RETURN_NONE;
@@ -330,8 +318,8 @@ void Protocol_on_memcached_reply( SessionCallbackData *scd, char *data, int data
     Route *r = req->route;
     if ( r->mrq || r->mrq2 ) { 
       MrqClient *py_mrq;
-      if ( r->mrq ) py_mrq = self->app->py_mrq;
-      if ( r->mrq2) py_mrq = self->app->py_mrq2;
+      if ( r->mrq ) py_mrq = (MrqClient*)self->app->py_mrq;
+      if ( r->mrq2) py_mrq = (MrqClient*)self->app->py_mrq2;
       int slot = 0;
 
       // Pull slot from the first arg. Must be a number though a string won't break
@@ -499,8 +487,8 @@ Protocol* Protocol_on_body(Protocol* self, char* body, size_t body_len) {
   }
   if ( r->mrq || r->mrq2 ) { 
     MrqClient *py_mrq;
-    if ( r->mrq ) py_mrq = self->app->py_mrq;
-    if ( r->mrq2) py_mrq = self->app->py_mrq2;
+    if ( r->mrq ) py_mrq = (MrqClient*)self->app->py_mrq;
+    if ( r->mrq2) py_mrq = (MrqClient*)self->app->py_mrq2;
     DBG printf("Route uses mrq\n"); 
     int slot = 0;
     // Pull slot from the first arg. Must be a number
