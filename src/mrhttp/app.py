@@ -88,7 +88,11 @@ class Application(mrhttp.CApp):
   @property
   def loop(self):
     if not self._loop:
-      self._loop = asyncio.get_event_loop()
+      try:
+        self._loop = asyncio.get_event_loop()
+      except RuntimeError:
+        self._loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._loop)
     return self._loop
 
   def expand_requests(self):
@@ -233,8 +237,12 @@ class Application(mrhttp.CApp):
       #profiler_start(b"mrhttp.log")
 
       if not loop:
-        loop = self.loop
+        try:
+          loop = asyncio.get_event_loop()
+        except RuntimeError:
+          loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
+        self._loop = loop
       else:
         self._loop = loop
 
@@ -352,8 +360,9 @@ class Application(mrhttp.CApp):
       signal.signal(signal.SIGTERM, stop)
       #signal.signal(signal.SIGHUP, stop)
 
+      ctx = multiprocessing.get_context("fork")
       for _ in range(num_workers or 1):
-          worker = multiprocessing.Process( target=self.serve, kwargs=dict(sock=sock, host=host, port=port, loop=None))
+          worker = ctx.Process( target=self.serve, kwargs=dict(sock=sock, host=host, port=port, loop=None))
           worker.daemon = True
           worker.start()
           workers.add(worker)
