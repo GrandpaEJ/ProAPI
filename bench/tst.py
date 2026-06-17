@@ -1,6 +1,6 @@
 
 import mrhttp
-import mrjson as json
+import json
 import asyncio
 
 app = mrhttp.Application()
