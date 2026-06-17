@@ -1,15 +1,4 @@
 
-import os, sysconfig
-
-# Use zig cc as the C compiler
-os.environ.setdefault('CC', 'zig cc')
-# zig's LLD doesn't support --exclude-libs; strip it from linker flags
-for var in ('LDFLAGS', 'LDSHARED'):
-    val = sysconfig.get_config_var(var)
-    if val:
-        cleaned = ' '.join(a for a in val.split() if '--exclude-libs' not in a)
-        os.environ[var] = cleaned
-
 from setuptools import setup, Extension, find_packages
 
 m1 = Extension(
