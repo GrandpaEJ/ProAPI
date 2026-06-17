@@ -1,31 +1,33 @@
-# Mrhttp
-Async Python 3.5+ web server written in C
+# ProAPI
 
-# Benchmarks
+Async Python 3.13+ web server — C core, SIMD-accelerated HTTP parsing.
+
+**Based on [mrhttp](https://github.com/MarkReedZ/mrhttp) by Mark Reed** — a blazing-fast async Python web framework written in C. ProAPI continues that legacy with modernized internals, Python 3.14 support, and ongoing development.
+
+## Benchmarks
 
 ```
-  Pipelined
-    Hello (cached)  8,534,332 Requests/second
-    Hello           6,834,994 Requests/second
-    More hdrs       6,193,307 Requests/second
-    Sessions        4,396,364 Requests/second
-    File Upload     3,510,289 Requests/second
-    mrpacker        2,052,674 Requests/second
-    Form            1,182,228 Requests/second
+Pipelined
+  Hello (cached)  8,534,332 Requests/second
+  Hello           6,834,994 Requests/second
+  More hdrs       6,193,307 Requests/second
+  Sessions        4,396,364 Requests/second
+  File Upload     3,510,289 Requests/second
+  mrpacker        2,052,674 Requests/second
+  Form            1,182,228 Requests/second
 
-  One by one
-    Hello           707,667 Requests/second
-    Hello hdrs      728,639 Requests/second
-    Cookies         588,212 Requests/second
-    many args       691,910 Requests/second
-    404 natural     763,643 Requests/second
-    404             580,424 Requests/second
-    Form parsing    338,553 Requests/second
-    mrpacker        533,242 Requests/second
-    Sessions        325,354 Requests/second
-    File Upload     292,331 Requests/second
-    get ip          503,454 Requests/second
-    
+One by one
+  Hello           707,667 Requests/second
+  Hello hdrs      728,639 Requests/second
+  Cookies         588,212 Requests/second
+  many args       691,910 Requests/second
+  404 natural     763,643 Requests/second
+  404             580,424 Requests/second
+  Form parsing    338,553 Requests/second
+  mrpacker        533,242 Requests/second
+  Sessions        325,354 Requests/second
+  File Upload     292,331 Requests/second
+  get ip          503,454 Requests/second
 ```
 
 Versus sanic a pure python async server
@@ -39,11 +41,9 @@ sessions           4,053 Requests/second
 File upload        1,457 Requests/second
 ```
 
-Hello World Example
--------------------
+## Hello World
 
 ```python
-
 import proapi
 
 app = proapi.Application()
@@ -53,20 +53,23 @@ def hello(r):
   return 'Hello World!'
 
 app.run(cores=2)
-
 ```
 
-Installation
-------------
+## Installation
 
-```
+```bash
 sudo apt install python3-dev -y
-pip3 install proapi
+pip install proapi
 ```
 
-Building from source
+### Build from source
 
-```
+```bash
 pip install .
+# or
+zig build
 ```
 
+## Legacy
+
+ProAPI is a fork of [mrhttp](https://github.com/MarkReedZ/mrhttp) originally created by [Mark Reed](https://github.com/MarkReedZ). The original C core, SIMD parsers, and protocol implementations are his work. All credit for the foundational design and performance engineering belongs to him.

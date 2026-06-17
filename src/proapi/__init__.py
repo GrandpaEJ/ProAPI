@@ -1,3 +1,5 @@
+# ProAPI — based on mrhttp by Mark Reed (https://github.com/MarkReedZ/mrhttp)
+# All credit for the original C engine and design to Mark Reed.
 
 from .internals import Protocol
 from .internals import Request as CRequest
@@ -21,5 +23,5 @@ from .mrcacheclient import MrcacheClient
 from .app import *
 from .internals import randint, escape, to64, from64, timesince
 
-__version__=0.13
+__version__="1.0.0"
 

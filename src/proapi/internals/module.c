@@ -2,6 +2,10 @@
 #include "protocol.h"
 #include "request.h"
 
+/*
+ * ProAPI — based on mrhttp (https://github.com/MarkReedZ/mrhttp)
+ * Original C engine and SIMD parsers by Mark Reed.
+ */
 
 #define PROXY(attr) \
   {#attr, (getter)Request_get_proxy, NULL, "", #attr}
